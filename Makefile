@@ -1,9 +1,9 @@
-CC= gcc
+CC= clang #gcc
 #CFLAGS=-std=c99
 CFLAGS=-O0 -g -DDEBUG -std=c99	# for debug
 LDFLAGS=
 SOURCE=main.c
-HEADER=def.h
+HEADER=def.h library.h
 OBJECTS= $(SOURCE:.c=.o)
 EXECUTABLE=main
 TMPFILES= *~ a.out
