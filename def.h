@@ -6,7 +6,7 @@
 
 typedef struct {
   char name[DIM];
-  char scree_name[DIM];
+  char screen_name[DIM];
 } User;
 
 typedef struct {

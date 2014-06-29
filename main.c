@@ -1,67 +1,53 @@
 /* main.c - Progetto Algoritmi e Strutture di Dati */
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
 
+#define NTWEET 10		/* numero di Tweet da leggere */
 #include "def.h"
-#include "library.h"
+//#include "library.h"
+#include "parser.h"
 
-//#define MAX_STRING 1024
 
-int countSubstring(const char *str, const char *sub);
-
-void Parser(char* text, Tweet* Tweets, int id);
 
 int main(int argc, char **argv) {
-  char* text; 
-  int N=0;
+  FILE* fp;
+  char* line = NULL;
+  size_t len = 0;
+  ssize_t read;
 
-  /* Get text from input file */
-  text = get_text_from_file(argv[1]);
-  /* Get size of array - total tweet */
-  N = get_tweet_number(text);
-#ifdef DEBUG
-  printf ("Numero di tweet: %d\n",N);
-#endif
-  /* Alloco array dei tweet */
-  Tweet* Tweets = malloc (N * sizeof (Tweet));
+  fp = fopen(argv[1], "r");
+  if (fp == NULL)
+    ERR("Open failed. Give text file in input.\n");
 
-  /* /\* Fill it *\/ */
-  /* for (int id = 0; id < N; ++id) */
-  /*   { */
-  /*     Parser(text,Tweets,id); */
-  /*   } */
+  /* Alloco array dei Tweet */
+  Tweet* T = malloc( NTWEET * sizeof(Tweet) );  
+  int i = 0;
 
-  free(Tweets);
+  strcpy(T[2].text, "ma funge?");
+  strcpy(T[2].author.name, "Pippo");
+  strcpy(T[2].author.screen_name, "superfoo");
+
+
+  while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
+    printf("Retrieved line of length %zu :\n", read);
+    Tweet ohi = T[i];
+    ParseTweet(line, ohi); 
+
+    printf ("Tweet[%d] %s (%s) scrive:\n",i, T[i].author.name,T[i].author.screen_name);
+    printf ("%s\n",ohi.text);
+
+    i++;
+  }
+
+  printf ("%s (%s) : %s\n\n", T[2].author.name, T[2].author.screen_name, T[2].text);
+
+  if (line)
+    free(line);
+  exit(EXIT_SUCCESS);
+  fclose ( fp );
+
+
+  free(T);
   return 0;
-}
-
-void Parser(char* text, Tweet* Tweets, int id){
-  char* p = strstr(text, "'text'");  // ritorna un puntatore all'inizio della sottostringa
-  p = p + strlen("'text': ");	     // posizione inizio testo: 'blabla...
-  int lengh = strcspn(++p,"'");	     // lengh of text: ...bla bla'
-
-  strncpy(Tweets[id].text, p, lengh); // copio testo tra apici da p nell'array 
-
-#ifdef DEBUG
-  printf("id: [%d]\t", id);
-  printf("%s\n", Tweets[id].text);
-#endif
-
-  char* campo;
-  char* label;
-  /* while(campo != NULL || int j < 100){ */
-  /*   campo = strtok (text, "'"); */
-  /*   printf ("%s\n",campo); */
-  /*   campo = strtok (NULL, "'"); */
-  /*   j++; */
-  /* } */
-}
-
-
-int countSubstring(const char *str, const char *sub)
-{
-    int length = strlen(sub);
-    if (length == 0) return 0;
-    int count = 0;
-    for (str = strstr(str, sub); str; str = strstr(str + length, sub))
-        ++count;
-    return count;
 }

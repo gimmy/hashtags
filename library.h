@@ -7,7 +7,6 @@
 char* get_text_from_file(char* input); 
 int get_tweet_number(FILE* fp);
 
-size_t getline(char **lineptr, size_t *n, FILE *stream);
 
 /* Return number of tweet (line) from text file */
 int get_tweet_number(FILE* fp) {
