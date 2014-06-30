@@ -1,9 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/* parser.h
+   Parser line and return a Tweet */
 
 #include "jsmn/jsmn.h"
-
 
 #define TOKEN_EQ(t, tok_start, tok_end, tok_type) \
 	((t).start == tok_start \
@@ -21,50 +19,55 @@
 //#define JSMN_STRICT
 #include "jsmn/jsmn.c"
 
-void ParseTweet(char* js, Tweet Tw) {
-	int result;
-	jsmn_parser parser;
-	jsmntok_t tokens[256];
+Tweet ParseTweet(char* js) {
+  Tweet Tw;
 
-	jsmn_init(&parser);
-	result = jsmn_parse(&parser, js, strlen(js), tokens, 256);
+  int result;			/* inizializzo parser */
+  jsmn_parser parser;
+  jsmntok_t tokens[256];
 
-	unsigned int length = 0;
+  jsmn_init(&parser);
+  result = jsmn_parse(&parser, js, strlen(js), tokens, 256);
 
-	if (tokens[0].type == JSMN_OBJECT) {
-	  printf("Tweet: {%d elems}", tokens[0].size);
-	  int EndTweet = tokens[0].end; // lunghezza del Tweet
-	  TOKEN_PRINT(tokens[0]);
-	  
-	  for ( int j = 1; tokens[j].end <= EndTweet; j++ ) { // finché non arrivo in fondo al Tweet
+  unsigned int length = 0;
+  int stop = 0;
 
-		if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
+  if (tokens[0].type == JSMN_OBJECT) {
+    int EndTweet = tokens[0].end; // lunghezza del Tweet
+#ifdef DEBUG
+    printf("Tweet: {%d elems}", tokens[0].size);
+    TOKEN_PRINT(tokens[0]);
+#endif    
+    // finché non arrivo in fondo al Tweet
+    for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) { 
 
-		  if (  TOKEN_STRING(js, tokens[j], "text")  ) {
-		    j = j+1; 
-		    /* Salvo testo in Tweet[i].text */
-		    length = tokens[j].end - tokens[j].start;
-		    strncpy(Tw.text, &js[tokens[j].start], length);
-		    //memcpy(Tw.text, &js[tokens[j].start], length);
-		    //Tw.text[length] = '\0';
-		    printf("testo tweet: %s\n", Tw.text);
-		  }
-		  else if (  TOKEN_STRING(js, tokens[j], "screen_name")  ) {
-		    j = j+1;
-		    /* Salvo screen_name in Tweet[i].author.screen_name */
-		    length = tokens[j].end - tokens[j].start;
-		    strncpy(Tw.author.screen_name, &js[tokens[j].start], length);
-		    printf("Tw.author.screen_name: %s\n", Tw.author.screen_name);
-		  }
-		  else if (  TOKEN_STRING(js, tokens[j], "name")  ) {
-		    j = j+1;
-		    /* Salvo name in Tweet[i].author.name */
-		    length = tokens[j].end - tokens[j].start;		    
-		    strncpy(Tw.author.name, &js[tokens[j].start], length);
-		    printf("Tw.author.name: %s\n", Tw.author.name);
-		    return; // esco: ho salvato tutto
-		  }
-		}
-	  }
+      if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
+
+	if ( TOKEN_STRING(js, tokens[j], "text") ) {
+	  j = j+1; 
+	  /* Salvo testo in Tweet[i].text */
+	  length = tokens[j].end - tokens[j].start;
+	  //strncpy(Tw.text, &js[tokens[j].start], length);
+	  memcpy(Tw.text, &js[tokens[j].start], length);
+	  Tw.text[length] = '\0';
 	}
+	else if ( TOKEN_STRING(js, tokens[j], "screen_name") ) {
+	  j = j+1;
+	  /* Salvo screen_name in Tweet[i].author.screen_name */
+	  length = tokens[j].end - tokens[j].start;
+	  memcpy(Tw.author.screen_name, &js[tokens[j].start], length);
+	  Tw.author.screen_name[length] = '\0';
+	}
+	else if ( TOKEN_STRING(js, tokens[j], "name") ) {
+	  j = j+1;
+	  /* Salvo name in Tweet[i].author.name */
+	  length = tokens[j].end - tokens[j].start;
+	  memcpy(Tw.author.name, &js[tokens[j].start], length);
+	  Tw.author.name[length] = '\0';
+	  stop = 1; // ho salvato tutto. Esco e ritorno il Tweet
+	}
+      }
+    }
+  }
+  return Tw;
 }
