@@ -8,7 +8,8 @@
 
 #include "def.h"
 #include "parser.h"
-
+#include "trie.h"
+#include "tweet_filter.h"
 
 int main(int argc, char **argv) {
   FILE* fp;
@@ -23,23 +24,65 @@ int main(int argc, char **argv) {
   /* Alloco array dei Tweet */
   Tweet* T = malloc( NTWEET * sizeof(Tweet) ); int i = 0;
 
+  /* Creo il Trie */
+  trie_nodo* radice = crea_nodo();
+
+
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
-#ifdef DEBUG
-    printf("Retrieved line of length %zu\n", read);
-#endif
     T[i] = ParseTweet(line); 
-#ifdef DEBUG
-    printf ("Tweet[%d] %s (%s) scrive:\n",i, T[i].author.name,T[i].author.screen_name);
-    printf ("%s\n\n",T[i].text);
-#endif
     i++;
   }
+
+  /* Insert in Trie from Tweet.text */
+  for (i = 0; i < NTWEET; ++i)
+    {
+#ifdef DEBUG
+    printf ("\nTweet[%d] %s (%s) scrive:\n %s\n",i, \
+	    T[i].author.name,T[i].author.screen_name, T[i].text);
+#endif
+
+    InTrie(T[i].text, radice);
+    }
+  fprintf(stderr, "Costruita trie con %d nodi\n", conta_nodi(radice));
+
+    //stampa_stringhe(radice);
+
+    /* Cerca nel Trie */
+    char s[MAX_LENGTH];
+    for(int j=0; j < 3; j++) {
+      printf ("Inserire stringa da cercare: ");
+      fgets(s, MAX_LENGTH, stdin);
+
+      // elimino l'a-capo (newline) finale
+      int l = strlen(s);
+      if (s[l - 1] == '\n') {
+  	s[l - 1] = 0;
+      }
+
+      printf ("found: %s ",s);
+      trie_nodo* nodo_prefisso = cerca(radice, s, 1);
+      if (nodo_prefisso) {
+  	char out[MAX_LENGTH];
+  	// copia il prefisso iniziale nella stringa corrente
+  	strcpy(out, s);
+
+  	// visita tutti i completamenti
+  	stampa_stringhe_visita(nodo_prefisso, out, strlen(s));
+      }
+      else
+  	printf("Prefisso non trovato\n");
+      printf("\n");
+    }
+
+
 
   if (line)
     free(line);
   exit(EXIT_SUCCESS);
   fclose ( fp );
 
+  /* Cencello il Trie */
+  /* ... */
 
   free(T);
   return 0;
