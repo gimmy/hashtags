@@ -19,7 +19,8 @@
 //#define JSMN_STRICT
 #include "jsmn/jsmn.c"
 
-void ScanUser(char* aux, Tweet* t, int d) {
+/* Get & save an User (author or mentioned) */
+void ScanUser(char* aux, Tweet* t, int u) {
   unsigned int end = strlen(aux); 
   unsigned int length = 0;
 
@@ -31,9 +32,8 @@ void ScanUser(char* aux, Tweet* t, int d) {
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 128);
 
-      int u = 0;		// users_mention
 
-      for ( int j = 1; (tokens[j].end <= end) && (u < d) ; j++ ) { 
+      for ( int j = 1; (tokens[j].end <= end); j++ ) { 
 
 	if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
 	  /* Grep User info */
@@ -41,27 +41,26 @@ void ScanUser(char* aux, Tweet* t, int d) {
 	    j = j+1;
 	    /* Save screen_name */
 	    length = tokens[j].end - tokens[j].start;
-	    if (d == 0) {	// se dest_users == 0 sto passando l'autore
+	    if (u == 0) {	// se users == 0 sto passando l'autore
 	      memcpy(t->author.screen_name, &aux[tokens[j].start], length);
 	      t->author.screen_name[length] = '\0';
 	    }
 	    else {
-	      memcpy(t->dest[u].screen_name, &aux[tokens[j].start], length);
-	      t->dest[u].screen_name[length] = '\0';
+	      memcpy(t->dest[u-1].screen_name, &aux[tokens[j].start], length);
+	      t->dest[u-1].screen_name[length] = '\0';
 	    }
 	  }
 	  else if ( TOKEN_STRING(aux, tokens[j], "name") ) {
 	    j = j+1;
 	    /* Save name */
 	    length = tokens[j].end - tokens[j].start;
-	    if (d == 0){
+	    if (u == 0){
 	      memcpy(t->author.name, &aux[tokens[j].start], length);
 	      t->author.name[length] = '\0';	      
 	    }
 	    else {
-	      memcpy(t->dest[u].name, &aux[tokens[j].start], length);
-	      t->dest[u].name[length] = '\0';
-	      u++; // passo al prossimo user_mention
+	      memcpy(t->dest[u-1].name, &aux[tokens[j].start], length);
+	      t->dest[u-1].name[length] = '\0';
 	    }
 	  }
 	}	
@@ -89,7 +88,7 @@ Tweet ParseTweet(char* js) {
     TOKEN_PRINT(tokens[0]);
 #endif    
     // finché non arrivo in fondo al Tweet
-    for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) { 
+    for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) { // remove stop TODO
 
       if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
 
@@ -116,7 +115,9 @@ Tweet ParseTweet(char* js) {
 	    char aux[length];
 	    memcpy(aux, &js[tokens[j].start], length);
 	    //aux[length] = '\0';
-	    ScanUser(aux, pTw, dest_users); 
+	    for (int u = 1; u <= dest_users; u++)	      
+	      ScanUser(aux, pTw, u); 
+	      
 	  }
 #ifdef DEBUG
 	  else {

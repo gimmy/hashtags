@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NTWEET 500		/* numero di Tweet da leggere */
+#define NTWEET 200		/* numero di Tweet da leggere */
 
 #include "def.h"
 #include "parser.h"
 #include "trie.h"
-#include "tweet_filter.h"
+#include "filter.h"
 
 int main(int argc, char **argv) {
   FILE* fp;
@@ -65,7 +65,6 @@ int main(int argc, char **argv) {
   	s[l - 1] = 0;
       }
 
-      printf ("found: %s ",s);
       trie_nodo* nodo_prefisso = cerca(radice, s, 1);
       if (nodo_prefisso) {
   	char out[MAX_LENGTH];
