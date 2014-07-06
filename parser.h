@@ -31,9 +31,9 @@ void ScanUser(char* aux, Tweet* t, int d) {
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 128);
 
-      int u = 0;		// users
+      int u = 0;		// users_mention
 
-      for ( int j = 1; (tokens[j].end <= end) && (u <= d) ; j++ ) { 
+      for ( int j = 1; (tokens[j].end <= end) && (u < d) ; j++ ) { 
 
 	if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
 	  /* Grep User info */
@@ -61,6 +61,7 @@ void ScanUser(char* aux, Tweet* t, int d) {
 	    else {
 	      memcpy(t->dest[u].name, &aux[tokens[j].start], length);
 	      t->dest[u].name[length] = '\0';
+	      u++; // passo al prossimo user_mention
 	    }
 	  }
 	}	
@@ -107,9 +108,10 @@ Tweet ParseTweet(char* js) {
 	  if ( (tokens[j+1].type == JSMN_ARRAY) && (tokens[j+1].size > 0) ) {
 	    j++;
 	    #ifdef DEBUG
-	    printf("[%d elems]\n", tokens[j].size); 
+	    printf("@users: [%d elems]\n", tokens[j].size); 
 	    #endif
 	    int dest_users = tokens[j].size;
+	    Tw.udest = dest_users; // aggiorno numero di destinatari
 	    length = tokens[j].end - tokens[j].start;
 	    char aux[length];
 	    memcpy(aux, &js[tokens[j].start], length);
@@ -117,8 +119,10 @@ Tweet ParseTweet(char* js) {
 	    ScanUser(aux, pTw, dest_users); 
 	  }
 #ifdef DEBUG
-	  else
+	  else {
 	    printf ("No user_mentions\n");
+	    Tw.udest = 0; // aggiorno numero di destinatari
+	  }
 #endif
 	}
 	else if ( TOKEN_STRING(js, tokens[j], "user") ) {

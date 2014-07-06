@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NTWEET 10		/* numero di Tweet da leggere */
+#define NTWEET 500		/* numero di Tweet da leggere */
 
 #include "def.h"
 #include "parser.h"
@@ -29,7 +29,8 @@ int main(int argc, char **argv) {
 
 
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
-    T[i] = ParseTweet(line); 
+    //printf ("line: %d\n",i);
+    T[i] = ParseTweet(line);
     i++;
   }
 
@@ -39,6 +40,11 @@ int main(int argc, char **argv) {
 #ifdef DEBUG
     printf ("\nTweet[%d] %s (%s) scrive:\n %s\n",i, \
 	    T[i].author.name,T[i].author.screen_name, T[i].text);
+    int u = 0;
+    while (T[i].udest != 0 && u < T[i].udest) {
+      printf ("@user : %s\n",T[i].dest[u].screen_name);
+      u++;
+    }
 #endif
 
     InTrie(T[i].text, radice);

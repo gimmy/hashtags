@@ -27,7 +27,7 @@ void InTrie(char* text, trie_nodo* radice) {
       if( rmchar != NULL )	// rimuovo # e @
 	delete_char(word, '#', len);   
 
-      rmchar = strstr(word, "@");
+      rmchar = strstr(word, "@"); /* TODO: rimuovere l'utente dopo @ */
       if( rmchar != NULL )
 	delete_char(word, '@', len); 
 

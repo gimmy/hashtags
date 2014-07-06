@@ -17,5 +17,6 @@ typedef struct {
 typedef struct {
   char text[LEN];
   User author;
+  int udest;
   User dest[10];
 } Tweet;
