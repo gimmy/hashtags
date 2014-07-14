@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NTWEET 200		/* numero di Tweet da leggere */
+#define NTWEET 1		/* numero di Tweet da leggere */
 
 #include "def.h"
 #include "parser.h"

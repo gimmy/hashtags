@@ -24,6 +24,14 @@ void InTrie(char content[140], trie_nodo* radice) {
 	if( rmchar != NULL )
 	  delete_char(word, '"', len);    
 
+	rmchar = strstr(word, "("); // rimuovo (
+	if( rmchar != NULL )
+	  delete_char(word, '(', len);    
+
+	rmchar = strstr(word, ")"); // rimuovo )
+	if( rmchar != NULL )
+	  delete_char(word, ')', len);    
+
 	rmchar = strstr(word, ".");
 	if( rmchar != NULL )
 	  delete_char(word, '.', len); 
@@ -47,11 +55,13 @@ void InTrie(char content[140], trie_nodo* radice) {
 	  s[len] = '\0';
 
 	  //for (int i=0 ; i<len; i++) s[i] = tolower(s[i]);
-
-	  printf("insert: %s   \t  (from: %s) \n", s, word);
-
+#ifdef DEBUG
+	  if(strlen(s) > 3)
+	    printf("insert: %s   \t  (from: %s) \n", s, word);
+#endif
 	  // Aggiungo nel Trie
-	  inserisci(radice, s);	
+	  if(strlen(s) > 3)
+	    inserisci(radice, s);	
 	}
  
       }
