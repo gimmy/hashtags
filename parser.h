@@ -90,16 +90,22 @@ Tweet ParseTweet(char* js) {
 
   if (tokens[0].type == JSMN_OBJECT) {
     int EndTweet = tokens[0].end; // lunghezza del Tweet
+    if (EndTweet == -1)      
+      stop = 1;
+   
 #ifdef DEBUG
     printf("Tweet: {%d elems}", tokens[0].size);
     TOKEN_PRINT(tokens[0]);
+    if (stop == 1)
+      printf ("Esco. (End = %d)\n",EndTweet);
 #endif    
+
     // finché non arrivo in fondo al Tweet
-    for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) { // remove stop TODO
+    for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) {
 
       if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
 
-	if ( TOKEN_STRING(js, tokens[j], "text") ) {
+	if ( TOKEN_STRING(js, tokens[j], "text") && (Tw.text[0] == 0) ) {
 	  j = j+1; 
 	  /* Salvo testo in Tweet[i].text */
 	  length = tokens[j].end - tokens[j].start;
@@ -133,7 +139,7 @@ Tweet ParseTweet(char* js) {
 	    Tw.udest = 0; // aggiorno numero di destinatari
 	  }
 	}
-	else if ( TOKEN_STRING(js, tokens[j], "user") ) {
+	else if ( TOKEN_STRING(js, tokens[j], "user") && (Tw.author.name[0] == 0) ) {
 	  j++;
 	  length = tokens[j].end - tokens[j].start;
 	  char aux[length];
