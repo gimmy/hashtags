@@ -1,5 +1,6 @@
 /* parser.h
-   Parser line and return a Tweet */
+ * Parser line and save Tweet 
+ */
 
 #include "jsmn/jsmn.h"
 
@@ -32,13 +33,23 @@ void ScanUser(char* aux, Tweet* t, int u) {
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 128);
 
-      int stop = 0;
+      int screen_name_done = 0;
+      int name_done = 0;
 
-      //printf ("Entro nell'User parser - token @user: %s\n",aux);
+#ifdef DEBUG
+      printf ("Entro nell'User parser ( ");
+      if (u>0)
+	{
+	  printf ("dest )\t");
+	}
+      else
+	printf ("author )\n");
+      //printf ("token user: %s\n",aux);    
+#endif
 	  
-      for ( int j = 1; (tokens[j].end <= end) && !stop; j++ ) { 
+      for ( int j = 1; (tokens[j].end <= end) && (!screen_name_done || !name_done); j++ ) { 
 
-	  if ( TOKEN_STRING(aux, tokens[j], "screen_name") ) {
+	if ( !screen_name_done && TOKEN_STRING(aux, tokens[j], "screen_name") ) {
 	    j = j+1;
 	    /* Save screen_name */
 	    length = tokens[j].end - tokens[j].start;
@@ -50,20 +61,21 @@ void ScanUser(char* aux, Tweet* t, int u) {
 	      memcpy(t->dest[u-1].screen_name, &aux[tokens[j].start], length);
 	      t->dest[u-1].screen_name[length] = '\0';
 	    }
+	    screen_name_done = 1; // screen_name salvato
 	  }
-	  else if ( TOKEN_STRING(aux, tokens[j], "name") ) {
+	  else if ( !name_done && TOKEN_STRING(aux, tokens[j], "name") ) {
 	    j = j+1;
 	    /* Save name */
 	    length = tokens[j].end - tokens[j].start;
 	    if (u == 0){
 	      memcpy(t->author.name, &aux[tokens[j].start], length);
 	      t->author.name[length] = '\0';
-	      stop = 1; // posso uscire
 	    }
 	    else {
 	      memcpy(t->dest[u-1].name, &aux[tokens[j].start], length);
 	      t->dest[u-1].name[length] = '\0';
 	    }
+	    name_done = 1; // name salvato
 	  }
       }
 }
@@ -74,9 +86,11 @@ int SkipToken(jsmntok_t token) {
   return size;
 }
 
-Tweet ParseTweet(char* js) {
-  Tweet Tw;
-  Tweet* pTw = &Tw;	// assegno il puntatore
+int ParseTweet(char* js, Tweet* pTw) {
+
+  /* Set mentions and author for further check */
+  pTw->udest = -1;
+  //pTw->author.name[0] = 0;
 
   int result;		/* inizializzo parser */
   jsmn_parser parser;
@@ -90,66 +104,85 @@ Tweet ParseTweet(char* js) {
 
   if (tokens[0].type == JSMN_OBJECT) {
     int EndTweet = tokens[0].end; // lunghezza del Tweet
-    if (EndTweet == -1)      
-      stop = 1;
-   
+    if (EndTweet == -1)
+      return 1; // esco con errore
+
 #ifdef DEBUG
-    printf("Tweet: {%d elems}", tokens[0].size);
+    printf("\nTweet: {%d elems}", tokens[0].size);
     TOKEN_PRINT(tokens[0]);
-    if (stop == 1)
-      printf ("Esco. (End = %d)\n",EndTweet);
-#endif    
+#endif
+
 
     // finché non arrivo in fondo al Tweet
     for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) {
 
       if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
 
-	if ( TOKEN_STRING(js, tokens[j], "text") && (Tw.text[0] == 0) ) {
+	if ( (pTw->text[0] == 0) && TOKEN_STRING(js, tokens[j], "text") ) {
 	  j = j+1; 
-	  /* Salvo testo in Tweet[i].text */
+	  /* Salvo testo in T[i].text */
 	  length = tokens[j].end - tokens[j].start;
-	  memcpy(Tw.text, &js[tokens[j].start], length);
-	  Tw.text[length] = '\0';
-#ifdef DEBUG
-	  printf ("Testo salvato: %s\n",Tw.text);
-#endif
+	  memcpy(pTw->text, &js[tokens[j].start], length);
+	  pTw->text[length] = '\0';
 	}
 	/* Grep info from Tweet */
-	else if ( TOKEN_STRING(js, tokens[j], "user_mentions") ) {
+	else if ( (pTw->udest < 0) && TOKEN_STRING(js, tokens[j], "user_mentions") ) {
 	  if ( (tokens[j+1].type == JSMN_ARRAY) && (tokens[j+1].size > 0) ) {
 	    j++;
 	    #ifdef DEBUG
 	    printf("@users: [%d elems]\n", tokens[j].size); 
 	    #endif
 	    int dest_users = tokens[j].size;
-	    Tw.udest = dest_users; // aggiorno numero di destinatari
-	    length = tokens[j].end - tokens[j].start;
-	    char aux[length];
-	    memcpy(aux, &js[tokens[j].start], length);
-	    //aux[length] = '\0';
-	    for (int u = 1; u <= dest_users; u++)	      
-	      ScanUser(aux, pTw, u); 
+	    pTw->udest = dest_users; // aggiorno numero di destinatari
+	    
+	    j++; // entro nell'array utenti
+	    int end_u =  tokens[j].end;
+
+	    /* Salvo utenti menzionati */
+	    for (int u = 1; u <= dest_users; u++) {	
+
+	      end_u =  tokens[j].end;
+
+	      length = tokens[j].end - tokens[j].start;
+	      char aux[length];
+	      memcpy(aux, &js[tokens[j].start], length);
+	      aux[length] = '\0';
+	      
+	      ScanUser(aux, pTw, u);
+
+	      while(tokens[j].start < end_u) // scorro fino al prossimo user
+		j++;
+	    }
 	      
 	  }
 	  else {
 #ifdef DEBUG
-	    printf ("No user_mentions\n");
+	    printf ("No user_mentions. ");
 #endif
-	    Tw.udest = 0; // aggiorno numero di destinatari
+	    /* 
+	     *  l'update di udest mi permette di non rientrare nell'if
+	     *  e di non valutare il TOKEN_STRING()
+	     */
+
+	    pTw->udest = 0; // aggiorno numero di destinatari
 	  }
 	}
-	else if ( TOKEN_STRING(js, tokens[j], "user") && (Tw.author.name[0] == 0) ) {
+	else if ( !(pTw->udest < 0) && TOKEN_STRING(js, tokens[j], "user") ) {
 	  j++;
 	  length = tokens[j].end - tokens[j].start;
 	  char aux[length];
 	  memcpy(aux, &js[tokens[j].start], length);
-	  //aux[length] = '\0';
+	  aux[length] = '\0';
 	  ScanUser(aux, pTw, 0);
+#ifdef DEBUG
+      printf ("\n %s (%s) scrive:\n %s\n\n", \
+	      pTw->author.name,pTw->author.screen_name,pTw->text);
+#endif
+
 	  stop = 1; // mi posso fermare
 	}
       }
     }
   }
-  return Tw;
+  return 0;
 }

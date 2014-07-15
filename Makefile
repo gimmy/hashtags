@@ -3,7 +3,7 @@ CC= clang #gcc
 CFLAGS=-O0 -g -DDEBUG -std=c99	# for debug
 LDFLAGS=
 SOURCE=main.c
-HEADER=def.h parser.h filter.h
+HEADER=def.h parser.h filter.h trie.h
 OBJECTS= $(SOURCE:.c=.o)
 EXECUTABLE=main
 TMPFILES= *~ a.out
@@ -33,4 +33,4 @@ clean:
 	@rm -f $(TMPFILES) $(OBJECTS) $(EXECUTABLE)
 run: $(EXECUTABLE)
 	@echo $(INFO)$(CLOSE) $(WHITE)"Run ./"$(EXECUTABLE)$(CLOSE)
-	@./$(EXECUTABLE) k.json
+	@./$(EXECUTABLE) K.json

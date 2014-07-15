@@ -27,27 +27,37 @@ int main(int argc, char **argv) {
   /* Creo il Trie */
   trie_nodo* radice = crea_nodo();
 
-
+#ifdef DEBUG 
+  printf ("\n\t -- Parse and save Tweet -- \n");
+#endif
+  int skipped = 0;
+  //int j = 0;
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
-    //printf ("line: %d\n",i);
-    T[i] = ParseTweet(line);
-    i++;
+    //printf ("\nline: %d\t",j++);
+    if ( ParseTweet(line, &T[i]) == 0 )
+      i++;
+    else
+      skipped++;
   }
 
+  printf ("Lette %d righe, salvati %d Tweet, %d saltati\n",i+skipped,i,skipped);
+
+#ifdef DEBUG 
+  printf ("\n\t -- Insert in Trie form Tweet[] saved -- \n");
+#endif
   /* Insert in Trie from Tweet.text */
   for (i = 0; i < NTWEET; ++i)
     {
 #ifdef DEBUG
-    printf ("\nTweet[%d] %s (%s) scrive:\n %s\n",i, \
-	    T[i].author.name,T[i].author.screen_name, T[i].text);
-    int u = 0;
-    while (T[i].udest != 0 && u < T[i].udest) {
-      printf ("@user : %s\n",T[i].dest[u].screen_name);
-      u++;
-    }
+      printf ("\n Tweet[%d] %s (%s) scrive:\n %s\n",i, \
+	      T[i].author.name,T[i].author.screen_name, T[i].text);
+      int u = 0;
+      while (T[i].udest != 0 && u < T[i].udest) {
+	printf (" @user[%d] : %s (%s)\n",u,T[i].dest[u].name, T[i].dest[u].screen_name);
+	u++;
+      }
 #endif
-
-    InTrie(T[i].text, radice);
+      InTrie(T[i].text, radice);
     }
   fprintf(stderr, "Costruita trie con %d nodi\n", conta_nodi(radice));
 
@@ -55,7 +65,7 @@ int main(int argc, char **argv) {
 
     /* Cerca nel Trie */
     char s[MAX_LENGTH];
-    for(int j=0; j < 3; j++) {
+    for(int j=0; j < 1; j++) {
       printf ("Inserire stringa da cercare: ");
       fgets(s, MAX_LENGTH, stdin);
 

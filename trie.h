@@ -3,7 +3,7 @@
 
 #define TRIE_MAX_DEPTH 512
 
-static int const N = 123; // invece di 256 o 123
+static int const N = 127; // invece di 256 o 123
 
 typedef struct trie_nodo {
   void* valore;
@@ -12,6 +12,8 @@ typedef struct trie_nodo {
    * Numbers 0-9 ASCII 48 to 57
    * Lowercase letters a-z ASCII 97 to 122
    * Uppercase letters A-Z ASCII 65-90  
+   * See:
+   * https://en.wikipedia.org/wiki/ASCII#ASCII_printable_code_chart
    **/
 } trie_nodo;
 
