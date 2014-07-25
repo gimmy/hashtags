@@ -20,6 +20,40 @@
 //#define JSMN_STRICT
 #include "jsmn/jsmn.c"
 
+/* Get & save an Hashtag */
+void ScanHash(char* aux, Tweet* t, int h) {
+  unsigned int end = strlen(aux); 
+  unsigned int length = 0;
+
+      /* Parse */
+      int r;			
+      jsmn_parser p;
+      jsmntok_t tokens[128];
+
+      jsmn_init(&p);
+      r = jsmn_parse(&p, aux, strlen(aux), tokens, 128);
+
+      int done = 0; // cambiare quando finito
+
+#ifdef DEBUG
+      printf ("Entro nell'Hash parser \n");
+#endif
+	  
+      for ( int j = 1; (tokens[j].end <= end) && !done; j++ ) { 
+
+	if ( !done && TOKEN_STRING(aux, tokens[j], "text") ) {
+	    j = j+1;
+	    /* Save hash */
+	    length = tokens[j].end - tokens[j].start;
+
+	      memcpy(t->hash[h].tag, &aux[tokens[j].start], length);
+	      t->hash[h].tag[length] = '\0';
+
+	    done = 1; // salvato
+	  }
+      }
+}
+
 /* Get & save an User (author or mentioned) */
 void ScanUser(char* aux, Tweet* t, int u) {
   unsigned int end = strlen(aux); 
@@ -88,8 +122,9 @@ int SkipToken(jsmntok_t token) {
 
 int ParseTweet(char* js, Tweet* pTw) {
 
-  /* Set mentions and author for further check */
+  /* Set mentions and hashs for further check */
   pTw->udest = -1;
+  pTw->nhash = -1;
   //pTw->author.name[0] = 0;
 
   int result;		/* inizializzo parser */
@@ -125,7 +160,10 @@ int ParseTweet(char* js, Tweet* pTw) {
 	  memcpy(pTw->text, &js[tokens[j].start], length);
 	  pTw->text[length] = '\0';
 	}
-	/* Grep info from Tweet */
+
+	/** Grep info from Tweet **/
+
+	/* User mentions */
 	else if ( (pTw->udest < 0) && TOKEN_STRING(js, tokens[j], "user_mentions") ) {
 	  if ( (tokens[j+1].type == JSMN_ARRAY) && (tokens[j+1].size > 0) ) {
 	    j++;
@@ -167,6 +205,49 @@ int ParseTweet(char* js, Tweet* pTw) {
 	    pTw->udest = 0; // aggiorno numero di destinatari
 	  }
 	}
+
+	/* Hashtags */
+	else if ( (pTw->nhash < 0) && TOKEN_STRING(js, tokens[j], "hashtags") ) {
+	  if ( (tokens[j+1].type == JSMN_ARRAY) && (tokens[j+1].size > 0) ) {
+	    j++;
+	    #ifdef DEBUG
+	    printf("#hashtags: [%d elems]\n", tokens[j].size); 
+	    #endif
+	    pTw->nhash = tokens[j].size; // aggiorno numero di hashtags
+	    
+	    j++; // entro nell'array
+	    int end_h =  tokens[j].end;
+
+	    /* Salvo hashtags */
+	    for (int h = 0; h < pTw->nhash; h++) {	
+
+	      end_h =  tokens[j].end;
+
+	      length = tokens[j].end - tokens[j].start;
+	      char aux[length];
+	      memcpy(aux, &js[tokens[j].start], length);
+	      aux[length] = '\0';
+	      
+	      ScanHash(aux, pTw, h);
+
+	      while(tokens[j].start < end_h) // scorro fino al prossimo hashtag
+		j++;
+	    }
+	      
+	  }
+	  else {
+#ifdef DEBUG
+	    printf ("No hashtags. ");
+#endif
+	    /* 
+	     *  l'update di hash mi permette di _non_ rientrare nell'if
+	     *  e di non valutare il TOKEN_STRING()
+	     */
+
+	    pTw->nhash = 0; // aggiorno numero hash
+	  }
+	}
+
 	else if ( !(pTw->udest < 0) && TOKEN_STRING(js, tokens[j], "user") ) {
 	  j++;
 	  length = tokens[j].end - tokens[j].start;

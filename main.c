@@ -56,6 +56,11 @@ int main(int argc, char **argv) {
 	printf (" @user[%d] : %s (%s)\n",u,T[i].dest[u].name, T[i].dest[u].screen_name);
 	u++;
       }
+      int h = 0;
+      while (T[i].nhash > 0 && h < T[i].nhash) {
+	printf (" #hash[%d] : %s \n", h, T[i].hash[h].tag);
+	h++;
+      }
 #endif
       InTrie(T[i].text, radice);
     }

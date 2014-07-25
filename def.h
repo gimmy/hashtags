@@ -15,8 +15,14 @@ typedef struct {
 } User;
 
 typedef struct {
+  char tag[DIM];
+} Hash;
+
+typedef struct {
   char text[LEN];
   User author;
   int udest;
   User dest[10];
+  int nhash;
+  Hash hash[10];
 } Tweet;
