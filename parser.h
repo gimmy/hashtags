@@ -255,10 +255,10 @@ int ParseTweet(char* js, Tweet* pTw) {
 	  memcpy(aux, &js[tokens[j].start], length);
 	  aux[length] = '\0';
 	  ScanUser(aux, pTw, 0);
-#ifdef DEBUG
-      printf ("\n %s (%s) scrive:\n %s\n\n", \
-	      pTw->author.name,pTw->author.screen_name,pTw->text);
-#endif
+/* #ifdef DEBUG */
+/*       printf ("\n %s (%s) scrive:\n %s\n\n", \ */
+/* 	      pTw->author.name,pTw->author.screen_name,pTw->text); */
+/* #endif */
 
 	  stop = 1; // mi posso fermare
 	}

@@ -4,10 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NTWEET 1		/* numero di Tweet da leggere */
+#define NTWEET 10000		/* numero di Tweet da leggere */
+#define NHASH NTWEET		/* uso NTWEET come hashtag bound */
 
 #include "def.h"
 #include "parser.h"
+#include "array.h"
 #include "trie.h"
 #include "filter.h"
 
@@ -23,9 +25,10 @@ int main(int argc, char **argv) {
 
   /* Alloco array dei Tweet */
   Tweet* T = malloc( NTWEET * sizeof(Tweet) ); int i = 0;
+  Hashtag* H = malloc( NHASH * sizeof(Hashtag) );
 
   /* Creo il Trie */
-  trie_nodo* radice = crea_nodo();
+  // trie_nodo* radice = crea_nodo();
 
 #ifdef DEBUG 
   printf ("\n\t -- Parse and save Tweet -- \n");
@@ -40,59 +43,81 @@ int main(int argc, char **argv) {
       skipped++;
   }
 
-  printf ("Lette %d righe, salvati %d Tweet, %d saltati\n",i+skipped,i,skipped);
 
-#ifdef DEBUG 
-  printf ("\n\t -- Insert in Trie form Tweet[] saved -- \n");
+#ifdef HDEBUG 
+  printf ("\n\t -- Insert Hashtag in array -- \n");
 #endif
-  /* Insert in Trie from Tweet.text */
+  int p = 0;
   for (i = 0; i < NTWEET; ++i)
     {
-#ifdef DEBUG
-      printf ("\n Tweet[%d] %s (%s) scrive:\n %s\n",i, \
-	      T[i].author.name,T[i].author.screen_name, T[i].text);
-      int u = 0;
-      while (T[i].udest != 0 && u < T[i].udest) {
-	printf (" @user[%d] : %s (%s)\n",u,T[i].dest[u].name, T[i].dest[u].screen_name);
-	u++;
-      }
       int h = 0;
       while (T[i].nhash > 0 && h < T[i].nhash) {
-	printf (" #hash[%d] : %s \n", h, T[i].hash[h].tag);
+#ifdef HDEBUG
+	printf ("Tweet[%d], #(%d) -> Hash[%d]: %s \n", i, h, p, T[i].hash[h].tag);
+#endif
+	/* inserisco hashtag nell'array */
+	/* ritorna nuova posizione libera */
+	p = inserisci_hash(T[i].hash[h].tag, i, H, p);
 	h++;
       }
-#endif
-      InTrie(T[i].text, radice);
     }
-  fprintf(stderr, "Costruita trie con %d nodi\n", conta_nodi(radice));
+
+  printf ("Lette %d righe, salvati %d Tweet, %d saltati - ",i+skipped,i,skipped);
+  printf (" %d Hashtag salvati\n", p);
+
+  
+/* #ifdef DEBUG */
+/*   printf ("\n\t -- Insert in Trie form Tweet[] saved -- \n"); */
+/* #endif */
+/*   /\* Insert in Trie from Tweet.text *\/ */
+/*   for (i = 0; i < NTWEET; ++i) */
+/*     { */
+/* #ifdef DEBUG */
+/*       stampa_tweet(i,T); */
+/* #endif */
+/*       //InTrie(T[i].text, radice); */
+/*     } */
+/*   fprintf(stderr, "Costruita trie con %d nodi\n", conta_nodi(radice)); */
 
     //stampa_stringhe(radice);
 
-    /* Cerca nel Trie */
+    /* Cerca Hash */
     char s[MAX_LENGTH];
     for(int j=0; j < 1; j++) {
-      printf ("Inserire stringa da cercare: ");
+      printf ("\nInserire stringa da cercare: ");
       fgets(s, MAX_LENGTH, stdin);
 
       // elimino l'a-capo (newline) finale
       int l = strlen(s);
       if (s[l - 1] == '\n') {
-  	s[l - 1] = 0;
+    	s[l - 1] = 0;
       }
-
-      trie_nodo* nodo_prefisso = cerca(radice, s, 1);
-      if (nodo_prefisso) {
-  	char out[MAX_LENGTH];
-  	// copia il prefisso iniziale nella stringa corrente
-  	strcpy(out, s);
-
-  	// visita tutti i completamenti
-  	stampa_stringhe_visita(nodo_prefisso, out, strlen(s));
-      }
-      else
-  	printf("Prefisso non trovato\n");
-      printf("\n");
     }
+
+    printf ("Cerco %s ...",s);
+    int h = cerca_hash(s,H);
+    if (h < 0)	
+      printf ("non trovato\n");
+    else {
+      printf ("trovato! - occorrenze: \n");
+      for (int j = 0; j < H[h].free; ++j)	  
+	stampa_tweet(H[h].occur[j],T);	  
+    }
+	
+
+    /*   trie_nodo* nodo_prefisso = cerca(radice, s, 1); */
+    /*   if (nodo_prefisso) { */
+    /* 	char out[MAX_LENGTH]; */
+    /* 	// copia il prefisso iniziale nella stringa corrente */
+    /* 	strcpy(out, s); */
+
+    /* 	// visita tutti i completamenti */
+    /* 	stampa_stringhe_visita(nodo_prefisso, out, strlen(s)); */
+    /*   } */
+    /*   else */
+    /* 	printf("Prefisso non trovato\n"); */
+    /*   printf("\n"); */
+    /* } */
 
 
 
@@ -104,6 +129,6 @@ int main(int argc, char **argv) {
   /* Cencello il Trie */
   /* ... */
 
-  free(T);
+  free(T); free(H);
   return 0;
 }
