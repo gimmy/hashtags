@@ -26,7 +26,7 @@ typedef struct {
   int udest;
   User dest[10];
   int nhash;
-  Hash hash[10];
+  int hash[10];
 } Tweet;
 
 typedef struct {

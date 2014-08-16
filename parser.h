@@ -21,7 +21,7 @@
 #include "jsmn/jsmn.c"
 
 /* Get & save an Hashtag */
-void ScanHash(char* aux, Tweet* t, int h) {
+void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
   unsigned int end = strlen(aux); 
   unsigned int length = 0;
 
@@ -43,11 +43,15 @@ void ScanHash(char* aux, Tweet* t, int h) {
 
 	if ( !done && TOKEN_STRING(aux, tokens[j], "text") ) {
 	    j = j+1;
-	    /* Save hash */
+	    /* Save hash... */
 	    length = tokens[j].end - tokens[j].start;
 
-	      memcpy(t->hash[h].tag, &aux[tokens[j].start], length);
-	      t->hash[h].tag[length] = '\0';
+	    char hash[length];
+	    memcpy(hash, &aux[tokens[j].start], length);
+	    hash[length] = '\0';
+
+	    /* ... in Hasharray & in Tweet */
+	    t->hash[h] = inserisci_hash( hash, idtweet, H, pl );
 
 	    done = 1; // salvato
 	  }
@@ -120,11 +124,11 @@ int SkipToken(jsmntok_t token) {
   return size;
 }
 
-int ParseTweet(char* js, Tweet* pTw) {
+int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl) {
 
   /* Set mentions and hashs for further check */
-  pTw->udest = -1;
-  pTw->nhash = -1;
+  T[i].udest = -1;
+  T[i].nhash = -1;
   //pTw->author.name[0] = 0;
 
   int result;		/* inizializzo parser */
@@ -153,25 +157,25 @@ int ParseTweet(char* js, Tweet* pTw) {
 
       if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
 
-	if ( (pTw->text[0] == 0) && TOKEN_STRING(js, tokens[j], "text") ) {
+	if ( (T[i].text[0] == 0) && TOKEN_STRING(js, tokens[j], "text") ) {
 	  j = j+1; 
 	  /* Salvo testo in T[i].text */
 	  length = tokens[j].end - tokens[j].start;
-	  memcpy(pTw->text, &js[tokens[j].start], length);
-	  pTw->text[length] = '\0';
+	  memcpy(T[i].text, &js[tokens[j].start], length);
+	  T[i].text[length] = '\0';
 	}
 
 	/** Grep info from Tweet **/
 
 	/* User mentions */
-	else if ( (pTw->udest < 0) && TOKEN_STRING(js, tokens[j], "user_mentions") ) {
+	else if ( (T[i].udest < 0) && TOKEN_STRING(js, tokens[j], "user_mentions") ) {
 	  if ( (tokens[j+1].type == JSMN_ARRAY) && (tokens[j+1].size > 0) ) {
 	    j++;
 	    #ifdef DEBUG
 	    printf("@users: [%d elems]\n", tokens[j].size); 
 	    #endif
 	    int dest_users = tokens[j].size;
-	    pTw->udest = dest_users; // aggiorno numero di destinatari
+	    T[i].udest = dest_users; // aggiorno numero di destinatari
 	    
 	    j++; // entro nell'array utenti
 	    int end_u =  tokens[j].end;
@@ -186,7 +190,7 @@ int ParseTweet(char* js, Tweet* pTw) {
 	      memcpy(aux, &js[tokens[j].start], length);
 	      aux[length] = '\0';
 	      
-	      ScanUser(aux, pTw, u);
+	      ScanUser(aux, &T[i], u);
 
 	      while(tokens[j].start < end_u) // scorro fino al prossimo user
 		j++;
@@ -202,24 +206,24 @@ int ParseTweet(char* js, Tweet* pTw) {
 	     *  e di non valutare il TOKEN_STRING()
 	     */
 
-	    pTw->udest = 0; // aggiorno numero di destinatari
+	    T[i].udest = 0; // aggiorno numero di destinatari
 	  }
 	}
 
 	/* Hashtags */
-	else if ( (pTw->nhash < 0) && TOKEN_STRING(js, tokens[j], "hashtags") ) {
+	else if ( (T[i].nhash < 0) && TOKEN_STRING(js, tokens[j], "hashtags") ) {
 	  if ( (tokens[j+1].type == JSMN_ARRAY) && (tokens[j+1].size > 0) ) {
 	    j++;
 	    #ifdef DEBUG
 	    printf("#hashtags: [%d elems]\n", tokens[j].size); 
 	    #endif
-	    pTw->nhash = tokens[j].size; // aggiorno numero di hashtags
+	    T[i].nhash = tokens[j].size; // aggiorno numero di hashtags
 	    
 	    j++; // entro nell'array
 	    int end_h =  tokens[j].end;
 
 	    /* Salvo hashtags */
-	    for (int h = 0; h < pTw->nhash; h++) {	
+	    for (int h = 0; h < T[i].nhash; h++) {	
 
 	      end_h =  tokens[j].end;
 
@@ -228,7 +232,7 @@ int ParseTweet(char* js, Tweet* pTw) {
 	      memcpy(aux, &js[tokens[j].start], length);
 	      aux[length] = '\0';
 	      
-	      ScanHash(aux, pTw, h);
+	      ScanHash(aux, &T[i], i, h, H, pl);
 
 	      while(tokens[j].start < end_h) // scorro fino al prossimo hashtag
 		j++;
@@ -244,20 +248,20 @@ int ParseTweet(char* js, Tweet* pTw) {
 	     *  e di non valutare il TOKEN_STRING()
 	     */
 
-	    pTw->nhash = 0; // aggiorno numero hash
+	    T[i].nhash = 0; // aggiorno numero hash
 	  }
 	}
 
-	else if ( !(pTw->udest < 0) && TOKEN_STRING(js, tokens[j], "user") ) {
+	else if ( !(T[i].udest < 0) && TOKEN_STRING(js, tokens[j], "user") ) {
 	  j++;
 	  length = tokens[j].end - tokens[j].start;
 	  char aux[length];
 	  memcpy(aux, &js[tokens[j].start], length);
 	  aux[length] = '\0';
-	  ScanUser(aux, pTw, 0);
+	  ScanUser(aux, &T[i], 0);
 /* #ifdef DEBUG */
 /*       printf ("\n %s (%s) scrive:\n %s\n\n", \ */
-/* 	      pTw->author.name,pTw->author.screen_name,pTw->text); */
+/* 	      T[i].author.name,T[i].author.screen_name,T[i].text); */
 /* #endif */
 
 	  stop = 1; // mi posso fermare

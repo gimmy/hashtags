@@ -11,19 +11,11 @@ int cerca_hash(char* parola, Hashtag* H) {
   return found;
 }
 
-int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int position) {
-  int new_position;
+int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 
-  if (position == 0) { // sto inserendo per la prima volta
-    strcpy( H[position].tag, hashtag );
-    H[position].occur[0] = idtweet;
-    H[position].free = 1;
-    new_position = position + 1;
-  }
-  else {
-    int found = cerca_hash(hashtag, H);
+  int found = cerca_hash(hashtag, H);
 
-    if ( (found >= 0) && (position > 0) ) // hashtag just in array
+    if ( found >= 0 ) // hashtag just in array
       {
 #ifdef HDEBUG
 	printf ("%s già inserita, aggiungo occorrenze\n",hashtag);
@@ -32,17 +24,20 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int position) {
 	int f = H[found].free;
 	H[found].occur[f] = idtweet;
 	H[found].free = H[found].free + 1;
-	new_position = position;
+
       }
     else if (found < 0) {	// new hashtag
-      strcpy( H[position].tag, hashtag );
-      H[position].occur[0] = idtweet;
-      H[position].free = 1;
-      new_position = position + 1;
+      int p = *position;	// prendo la prima posizione libera
+      strcpy( H[p].tag, hashtag );
+      H[p].occur[0] = idtweet;
+      H[p].free = 1;
+
+      *(position) = p+1;
+      found = p;
     }
 
-  }
-  return new_position; 	    /* ritorna la prossima posizione libera */
+  return found;	       /* ritorna posizione dell'hashtag nell'array */
+
 }
 
 

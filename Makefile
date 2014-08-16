@@ -1,6 +1,6 @@
 CC= clang #gcc
-CFLAGS=-std=c99
-#CFLAGS=-O0 -g -DHDEBUG -std=c99	# for debug
+#CFLAGS=-std=c99
+CFLAGS=-O0 -g -DDEBUG -std=c99	# for debug
 LDFLAGS=
 SOURCE=main.c
 HEADER=def.h parser.h filter.h trie.h array.h

@@ -4,12 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NTWEET 10000		/* numero di Tweet da leggere */
-#define NHASH NTWEET		/* uso NTWEET come hashtag bound */
+#define NTWEET 100		/* numero di Tweet da leggere */
+#define NHASH NTWEET*2		/* uso NTWEET come bound */
+#define NUSER NTWEET*2
 
 #include "def.h"
-#include "parser.h"
 #include "array.h"
+#include "parser.h"
+
 #include "trie.h"
 #include "filter.h"
 
@@ -23,9 +25,10 @@ int main(int argc, char **argv) {
   if (fp == NULL)
     ERR("Open failed. Give text file in input.\n");
 
-  /* Alloco array dei Tweet */
+  /* Alloco array */
   Tweet* T = malloc( NTWEET * sizeof(Tweet) ); int i = 0;
-  Hashtag* H = malloc( NHASH * sizeof(Hashtag) );
+  Hashtag* H = malloc( NHASH * sizeof(Hashtag) ); int l = 0;
+  User* U = malloc ( NUSER * sizeof(User) ); int m = 0;
 
   /* Creo il Trie */
   // trie_nodo* radice = crea_nodo();
@@ -37,34 +40,20 @@ int main(int argc, char **argv) {
   //int j = 0;
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
     //printf ("\nline: %d\t",j++);
-    if ( ParseTweet(line, &T[i]) == 0 )
+    if ( ParseTweet(line, T, i, H, &l) == 0 )
       i++;
     else
       skipped++;
   }
 
 
-#ifdef HDEBUG 
-  printf ("\n\t -- Insert Hashtag in array -- \n");
-#endif
-  int p = 0;
-  for (i = 0; i < NTWEET; ++i)
-    {
-      int h = 0;
-      while (T[i].nhash > 0 && h < T[i].nhash) {
-#ifdef HDEBUG
-	printf ("Tweet[%d], #(%d) -> Hash[%d]: %s \n", i, h, p, T[i].hash[h].tag);
-#endif
-	/* inserisco hashtag nell'array */
-	/* ritorna nuova posizione libera */
-	p = inserisci_hash(T[i].hash[h].tag, i, H, p);
-	h++;
-      }
-    }
+  printf ("\n-> Lette %d righe, salvati %d Tweet, %d saltati -",i+skipped,i,skipped);
+  printf (" %d Hashtag salvati\n", l);
 
-  printf ("Lette %d righe, salvati %d Tweet, %d saltati - ",i+skipped,i,skipped);
-  printf (" %d Hashtag salvati\n", p);
-
+for (int i = 0; i < l; ++i)
+  {
+    printf ("H[%d] = %s\n",i,H[i].tag);
+  }
   
 /* #ifdef DEBUG */
 /*   printf ("\n\t -- Insert in Trie form Tweet[] saved -- \n"); */
@@ -84,7 +73,7 @@ int main(int argc, char **argv) {
     /* Cerca Hash */
     char s[MAX_LENGTH];
     for(int j=0; j < 1; j++) {
-      printf ("\nInserire stringa da cercare: ");
+      printf ("\nInserire hashtag da cercare: ");
       fgets(s, MAX_LENGTH, stdin);
 
       // elimino l'a-capo (newline) finale
@@ -94,7 +83,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    printf ("Cerco %s ...",s);
+    printf ("Cerco #%s ...",s);
     int h = cerca_hash(s,H);
     if (h < 0)	
       printf ("non trovato\n");
@@ -129,6 +118,6 @@ int main(int argc, char **argv) {
   /* Cencello il Trie */
   /* ... */
 
-  free(T); free(H);
+  free(T); free(H); free(U);
   return 0;
 }
