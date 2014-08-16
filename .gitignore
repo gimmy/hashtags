@@ -3,3 +3,5 @@
 *.out
 *.json
 *.txt
+*.lock
+*.desktop

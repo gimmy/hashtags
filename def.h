@@ -12,6 +12,8 @@
 typedef struct {
   char name[DIM];
   char screen_name[DIM];
+  int cip[DIM]; 		/* elenco Tweet dell'utente */
+  int free;			// prima posizione libera in cip
 } User;
 
 typedef struct {
@@ -29,8 +31,8 @@ typedef struct {
 
 typedef struct {
   char tag[DIM];
-  int occur[DIM];
-  int free; // prima posizione libera in occur
+  int occur[DIM]; 		/* Tweet in cui compare l'hashtag */
+  int free;			// prima posizione libera in occur
 } Hashtag;
 
 
