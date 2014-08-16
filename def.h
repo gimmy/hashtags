@@ -7,7 +7,6 @@
 #define MAX_LENGTH 512
 #define MAX_STRING 1024
 
-/* Tweet structure */
 
 typedef struct {
   char name[DIM];
@@ -17,14 +16,10 @@ typedef struct {
 } User;
 
 typedef struct {
-  char tag[DIM];
-} Hash;
-
-typedef struct {
   char text[LEN];
-  User author;
+  int author;
   int udest;
-  User dest[10];
+  int dest[10];
   int nhash;
   int hash[10];
 } Tweet;
@@ -36,22 +31,19 @@ typedef struct {
 } Hashtag;
 
 
-void stampa_tweet(int id, Tweet* T) {
+void stampa_tweet(int id, Tweet* T, User* U) {
+
+  int a = T[id].author;
+
   printf ("\n Tweet[%d] %s (%s) scrive:\n %s\n",id, \
-	  T[id].author.name,T[id].author.screen_name, T[id].text);
+	  U[a].name, U[a].screen_name, T[id].text);
 
   /* Print Users */
   int u = 0;
   while (T[id].udest != 0 && u < T[id].udest) {
-    printf (" @user[%d] : %s (%s)\n",u,T[id].dest[u].name, T[id].dest[u].screen_name);
+    printf (" @user[%d] : %s (%s)\n",u, \
+	    U[T[id].dest[u]].name, U[T[id].dest[u]].screen_name);
     u++;
   }
-
-  /* /\* Print Hashtags *\/ */
-  /* int h = 0; */
-  /* while (T[id].nhash > 0 && h < T[id].nhash) { */
-  /*   printf (" #hash[%d] : %s \n", h, T[id].hash[h].tag); */
-  /*   h++; */
-  /* } */
 
 }

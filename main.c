@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NTWEET 100		/* numero di Tweet da leggere */
-#define NHASH NTWEET*2		/* uso NTWEET come bound */
-#define NUSER NTWEET*2
+#define NTWEET 10000		/* numero di Tweet da leggere */
+#define NHASH NTWEET/10		/* uso NTWEET come bound */
+#define NUSER NTWEET/2
 
 #include "def.h"
 #include "array.h"
@@ -38,23 +38,29 @@ int main(int argc, char **argv) {
 #endif
   int skipped = 0;
   //int j = 0;
+
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
     //printf ("\nline: %d\t",j++);
-    if ( ParseTweet(line, T, i, H, &l) == 0 )
+    if ( ParseTweet(line, T, i, H, &l, U, &m) == 0 )
       i++;
     else
       skipped++;
   }
 
 
-  printf ("\n-> Lette %d righe, salvati %d Tweet, %d saltati -",i+skipped,i,skipped);
-  printf (" %d Hashtag salvati\n", l);
+#ifdef DEBUG
+  /* Stampo gli hashtags */
+  for (int i = 0; i < l; ++i)
+    {
+      printf ("H[%d] = %s\n",i,H[i].tag);
+    }
+#endif  
 
-for (int i = 0; i < l; ++i)
-  {
-    printf ("H[%d] = %s\n",i,H[i].tag);
-  }
-  
+  /* Resoconto */
+  printf ("\n-> Lette %d righe, salvati %d Tweet, %d saltati \n",i+skipped,i,skipped);
+  printf ("\t Trovati %d #hashtag da %d utenti \n", l, m);
+
+
 /* #ifdef DEBUG */
 /*   printf ("\n\t -- Insert in Trie form Tweet[] saved -- \n"); */
 /* #endif */
@@ -89,8 +95,9 @@ for (int i = 0; i < l; ++i)
       printf ("non trovato\n");
     else {
       printf ("trovato! - occorrenze: \n");
+      /* Stampo tweet relativi */
       for (int j = 0; j < H[h].free; ++j)	  
-	stampa_tweet(H[h].occur[j],T);	  
+	stampa_tweet( H[h].occur[j], T, U );	  
     }
 	
 

@@ -15,7 +15,7 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 
   int found = cerca_hash(hashtag, H);
 
-    if ( found >= 0 ) // hashtag just in array
+    if ( found >= 0 ) // hashtag alredy in array
       {
 #ifdef HDEBUG
 	printf ("%s già inserita, aggiungo occorrenze\n",hashtag);
@@ -54,40 +54,30 @@ int cerca_user(char* utente, User* U) {
   return found;
 }
 
-int inserisci_user(char* sname, char* name, int idtweet, User* U, int position) {
-  int new_position;
+int inserisci_user(char* sname, int idtweet, User* U, int* position) {
 
-  if (position == 0) {		// primo inserimento
-    strcpy( U[position].screen_name, sname );
-    strcpy( U[position].name, name );
+  int found = cerca_user(sname, U);
 
-    U[position].cip[0] = idtweet;
-    U[position].free = 1;
-    new_position = position + 1;
-  }
-  else {			// altrimenti cerco e se manca inserisco
-    int found = cerca_user(sname, U);
-
-    if ( (found >= 0) && (position > 0) ) // user just in array
+    if ( found >= 0 ) // user alredy in array
       {
 #ifdef HDEBUG
-	printf ("%s già inserito, aggiungo tweet in cip\n",sname);
+	printf ("%s già inserito, aggiungo occorrenze\n",sname);
 #endif
-	/* Aggiungo id tweet */
+	/* Aggiungo id tweet nelle occorrenze */
 	int f = U[found].free;
 	U[found].cip[f] = idtweet;
 	U[found].free = U[found].free + 1;
-	new_position = position;
+
       }
     else if (found < 0) {	// new user
-      strcpy( U[position].screen_name, sname );
-      strcpy( U[position].name, name );
+      int p = *position;	// prendo la prima posizione libera
+      strcpy( U[p].screen_name, sname );
+      U[p].cip[0] = idtweet;
+      U[p].free = 1;
 
-      U[position].cip[0] = idtweet;
-      U[position].free = 1;
-      new_position = position + 1;
+      *(position) = p+1;
+      found = p;
     }
 
-  }
-  return new_position;
+  return found;	       /* ritorna posizione dell'hashtag nell'array */
 }

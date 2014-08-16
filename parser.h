@@ -59,7 +59,7 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 }
 
 /* Get & save an User (author or mentioned) */
-void ScanUser(char* aux, Tweet* t, int u) {
+void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
   unsigned int end = strlen(aux); 
   unsigned int length = 0;
 
@@ -91,13 +91,18 @@ void ScanUser(char* aux, Tweet* t, int u) {
 	    j = j+1;
 	    /* Save screen_name */
 	    length = tokens[j].end - tokens[j].start;
+	    char sname[length];
+	    memcpy(sname, &aux[tokens[j].start], length);
+	    sname[length] = '\0';
+
+	    /* Salvo nell'User array & nel Tweet */
+
 	    if (u == 0) {	// se users == 0 sto passando l'autore
-	      memcpy(t->author.screen_name, &aux[tokens[j].start], length);
-	      t->author.screen_name[length] = '\0';
+	      t->author = inserisci_user( sname, idtweet, U, pm );
 	    }
 	    else {
-	      memcpy(t->dest[u-1].screen_name, &aux[tokens[j].start], length);
-	      t->dest[u-1].screen_name[length] = '\0';
+	      t->dest[u-1] = inserisci_user( sname, idtweet, U, pm );
+	      /* TODO: aggiungere archi in U */
 	    }
 	    screen_name_done = 1; // screen_name salvato
 	  }
@@ -105,14 +110,20 @@ void ScanUser(char* aux, Tweet* t, int u) {
 	    j = j+1;
 	    /* Save name */
 	    length = tokens[j].end - tokens[j].start;
-	    if (u == 0){
-	      memcpy(t->author.name, &aux[tokens[j].start], length);
-	      t->author.name[length] = '\0';
-	    }
-	    else {
-	      memcpy(t->dest[u-1].name, &aux[tokens[j].start], length);
-	      t->dest[u-1].name[length] = '\0';
-	    }
+	    char name[length];
+	    memcpy(name, &aux[tokens[j].start], length);
+	    name[length] = '\0';
+
+	    /* Aggiungo solo il nome nell'array */
+	    int n;
+
+	    if (u == 0)
+	      n = t->author;	    
+	    else
+	      n = t->dest[u-1];
+
+	    strcpy( U[n].name, name );
+	    
 	    name_done = 1; // name salvato
 	  }
       }
@@ -124,7 +135,7 @@ int SkipToken(jsmntok_t token) {
   return size;
 }
 
-int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl) {
+int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm) {
 
   /* Set mentions and hashs for further check */
   T[i].udest = -1;
@@ -190,7 +201,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl) {
 	      memcpy(aux, &js[tokens[j].start], length);
 	      aux[length] = '\0';
 	      
-	      ScanUser(aux, &T[i], u);
+	      ScanUser(aux, &T[i], i, u, U, pm);
 
 	      while(tokens[j].start < end_u) // scorro fino al prossimo user
 		j++;
@@ -258,7 +269,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl) {
 	  char aux[length];
 	  memcpy(aux, &js[tokens[j].start], length);
 	  aux[length] = '\0';
-	  ScanUser(aux, &T[i], 0);
+	  ScanUser(aux, &T[i], i, 0, U, pm);
 /* #ifdef DEBUG */
 /*       printf ("\n %s (%s) scrive:\n %s\n\n", \ */
 /* 	      T[i].author.name,T[i].author.screen_name,T[i].text); */
