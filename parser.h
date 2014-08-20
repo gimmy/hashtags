@@ -103,6 +103,7 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	    else {
 	      t->dest[u-1] = inserisci_user( sname, idtweet, U, pm );
 	      /* TODO: aggiungere archi in U */
+	      add_mention( t->author, t->dest[u-1], U );
 	    }
 	    screen_name_done = 1; // screen_name salvato
 	  }

@@ -75,9 +75,22 @@ int inserisci_user(char* sname, int idtweet, User* U, int* position) {
       U[p].cip[0] = idtweet;
       U[p].free = 1;
 
+      U[p].at_free = 0;		/* in at[] segna 0 */
+
       *(position) = p+1;
       found = p;
     }
 
   return found;	       /* ritorna posizione dell'hashtag nell'array */
+}
+
+void add_mention(int mention, int user, User* U) {
+
+  int f = U[user].at_free;
+  // assert: user & mention already in User array
+      
+  /* Aggiungo id @utente nella @[] dell'autore */
+  U[user].at[f] = mention;
+  U[user].at_free = U[user].at_free + 1;
+
 }

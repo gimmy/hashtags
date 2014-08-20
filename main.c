@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #define NTWEET 10000		/* numero di Tweet da leggere */
 #define NHASH NTWEET/10		/* uso NTWEET come bound */
 #define NUSER NTWEET/2
 
 #include "def.h"
-#include "array.h"
+#include "array.c"
 #include "parser.h"
 
 #include "trie.h"
@@ -37,7 +38,6 @@ int main(int argc, char **argv) {
   printf ("\n\t -- Parse and save Tweet -- \n");
 #endif
   int skipped = 0;
-  //int j = 0;
 
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
     //printf ("\nline: %d\t",j++);
