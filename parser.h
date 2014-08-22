@@ -102,8 +102,8 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	    }
 	    else {
 	      t->dest[u-1] = inserisci_user( sname, idtweet, U, pm );
-	      /* TODO: aggiungere archi in U */
-	      add_mention( t->author, t->dest[u-1], U );
+	      /* aggiungo archi in U */
+	      add(t->dest[u-1], U[t->author].at, &U[t->author].at_free, DIM);
 	    }
 	    screen_name_done = 1; // screen_name salvato
 	  }
@@ -271,15 +271,25 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	  memcpy(aux, &js[tokens[j].start], length);
 	  aux[length] = '\0';
 	  ScanUser(aux, &T[i], i, 0, U, pm);
-/* #ifdef DEBUG */
-/*       printf ("\n %s (%s) scrive:\n %s\n\n", \ */
-/* 	      T[i].author.name,T[i].author.screen_name,T[i].text); */
-/* #endif */
 
 	  stop = 1; // mi posso fermare
 	}
       }
     }
   }
+
+  /* 
+   * Prima di uscire riempio usedby  
+   * degli eventuali #hashtag
+   */
+  if(T[i].nhash > 0) {
+    int a = T[i].author;
+    int h;
+    for (int n = 0; n < T[i].nhash; n++) {
+	h = T[i].hash[n];
+	add(a, H[h].usedby, &H[h].us_free, DIM);
+    }
+  }
+
   return 0;
 }

@@ -1,3 +1,38 @@
+/* array.c - Progetto Algoritmi e Strutture di Dati */
+
+/* 
+ * Cerca intero in un array:
+ * ritorna posizione dell'elemento
+ *  se trovato, -1 altrimenti
+ */
+int cerca(int x, int* array, int N) {
+  int found = -1; int i = 0;
+  while(i < N && found < 0){
+    if ( array[i] == x )
+      found = i;
+    else
+      i++;
+  }
+  return found;
+}
+
+/* 
+ * Aggiunge intero x nell'array a,
+ * solo se non presente, nella 
+ * prima posizione libera (free_p).
+ */
+void add(int x, int* a, int* free_p, int len_a) {
+
+  int p = cerca(x, a, len_a);
+
+  if ( p == -1 ) {
+    a[*free_p] = x;
+    p = *free_p;
+    *free_p = *free_p +1;
+  }
+}
+
+
 /* Hashtags Array */
 
 int cerca_hash(char* parola, Hashtag* H) {
@@ -82,15 +117,4 @@ int inserisci_user(char* sname, int idtweet, User* U, int* position) {
     }
 
   return found;	       /* ritorna posizione dell'hashtag nell'array */
-}
-
-void add_mention(int mention, int user, User* U) {
-
-  int f = U[user].at_free;
-  // assert: user & mention already in User array
-      
-  /* Aggiungo id @utente nella @[] dell'autore */
-  U[user].at[f] = mention;
-  U[user].at_free = U[user].at_free + 1;
-
 }

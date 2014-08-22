@@ -13,9 +13,6 @@
 #include "array.c"
 #include "parser.h"
 
-#include "trie.h"
-#include "filter.h"
-
 int main(int argc, char **argv) {
   FILE* fp;
   char* line = NULL;
@@ -79,27 +76,39 @@ int main(int argc, char **argv) {
     /* Cerca Hash */
     char s[MAX_LENGTH];
     for(int j=0; j < 1; j++) {
-      printf ("\nInserire hashtag da cercare: ");
-      fgets(s, MAX_LENGTH, stdin);
+      //      while ( l < 2 ) {
+	printf ("\nInserire hashtag da cercare: ");
+	fgets(s, MAX_LENGTH, stdin);
 
-      // elimino l'a-capo (newline) finale
-      int l = strlen(s);
-      if (s[l - 1] == '\n') {
-    	s[l - 1] = 0;
-      }
+	// elimino l'a-capo (newline) finale
+	int l = strlen(s);
+	if (s[l - 1] == '\n') {
+	  s[l - 1] = 0;
+	  l = l-1;
+	}
+      
+	if( l < 2 )
+	  printf ("Hashtag troppo corto\n");
+	else {
+	  printf ("Cerco #%s ...",s);
+	  int h = cerca_hash(s,H);
+	  if (h < 0)	
+	    printf ("non trovato\n");
+	  else {
+	    printf ("trovato! - occorrenze: \n");
+	    /* Stampo utenti che hanno usato l'# */
+	    printf ("n° utenti che lo usano: %d\n",H[h].us_free);
+	    printf ("usato da: ");
+	    for(int n = 0; n < H[h].us_free; n++)
+	      printf ("%s ", U[ H[h].usedby[n] ].screen_name);
+	    printf ("\n");
+	    /* Stampo tweet relativi */
+	    for (int j = 0; j < H[h].free; ++j)	  
+	      stampa_tweet( H[h].occur[j], T, U );	  
+	  }
+	}
+	//}	
     }
-
-    printf ("Cerco #%s ...",s);
-    int h = cerca_hash(s,H);
-    if (h < 0)	
-      printf ("non trovato\n");
-    else {
-      printf ("trovato! - occorrenze: \n");
-      /* Stampo tweet relativi */
-      for (int j = 0; j < H[h].free; ++j)	  
-	stampa_tweet( H[h].occur[j], T, U );	  
-    }
-	
 
     /*   trie_nodo* nodo_prefisso = cerca(radice, s, 1); */
     /*   if (nodo_prefisso) { */
