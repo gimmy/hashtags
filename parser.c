@@ -99,17 +99,10 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	    /* Salvo nell'User array & nel Tweet */
 
 	    if (u == 0) {	// se users == 0 sto passando l'autore
-	      t->author = inserisci_user( sname, idtweet, U, pm );
+	      t->author = inserisci_user( sname, idtweet, U, pm, u );
 	    }
 	    else {
-	      t->dest[u-1] = inserisci_user( sname, idtweet, U, pm );
-	      /* aggiungo archi in U */
-	      /* printf ("%s nomina %d utenti (per ora). ",U[t->author].screen_name, U[t->author].at_f); */
-	      /* printf ("aggiungo %d in .at[] (dal tweet %d) \n", t->dest[u-1],idtweet); */
-	      if ( add(t->dest[u-1], U[t->author].at, &U[t->author].at_f, NUSER) ) {
-		print_at(t->author, U);
-		ERR("at[] full!");
-	      }
+	      t->dest[u-1] = inserisci_user( sname, idtweet, U, pm, u );
 	    }
 	    screen_name_done = 1; // screen_name salvato
 	  }
@@ -285,7 +278,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 
   /* 
    * Prima di uscire riempio .usedby[] 
-   * degli eventuali #hashtag
+   * degli eventuali #hashtag...
    */
   if(T[i].nhash > 0) {
     int h;
@@ -297,6 +290,24 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	  ERR("usedby[] full!");       
     }
   }
+
+  /* 
+   * ...e anche .at[] con gli  
+   * eventuali @utenti ( archi in U )
+   */
+  if(T[i].udest > 0) {
+    int u;
+    for (int n = 0; n < T[i].udest; n++) {
+	u = T[i].dest[n];
+
+	if ( add( u, U[T[i].author].at, &U[T[i].author].at_f, NUSER) ) {
+	  stampa_at(T[i].author, U);
+	  ERR("at[] full!");
+	}
+	/* printf ("%s nomina %d utenti ",U[T[i].author].screen_name, U[T[i].author].at_f); */
+    }
+  }
+
 
   return 0;
 }

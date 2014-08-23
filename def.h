@@ -53,8 +53,10 @@ Tweet* T; Hashtag* H; User* U;
 int cerca(int x, int* array, int N);
 int add(int x, int* a, int* free_p, int len_a);
 
-void print_at(int iduser, User* U);
-void stampa_tweet(int id, Tweet* T, User* U);
+/* Stampe */
+void stampa_utente(int id, User* U);
+void stampa_at(int iduser, User* U);
+void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H);
 
 /* Hashtag array */
 int cerca_hash(char* parola, Hashtag* H);
@@ -62,7 +64,7 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position);
 
 /* User array */
 int cerca_user(char* utente, User* U);
-int inserisci_user(char* sname, int idtweet, User* U, int* position);
+int inserisci_user(char* sname, int idtweet, User* U, int* position, int u);
 
 /* Parser */
 void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl);

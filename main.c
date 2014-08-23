@@ -52,6 +52,19 @@ int main(int argc, char **argv) {
   printf ("\n-> Lette %d righe, salvati %d Tweet, %d saltati \n",i+skipped,i,skipped);
   printf ("\n\t Trovati %d #hashtag da %d utenti \n", l, m);
 
+  //#ifdef DEBUG
+  /* Stampo tweet */
+  printf ("\n Tweet letti: \n");
+  for (int j = 0; j < i; ++j)	  
+    stampa_tweet( j, T, U, H );
+  //#endif
+
+  /* Stampo utenti */
+  printf ("\n User trovati: \n");
+  for (int j = 0; j < m; ++j)
+    stampa_utente(j, U);
+
+
   if(l > 0) { // se ci sono hashtag
     /* Cerco impliciti */
     printf ("\n\tCerco impliciti...");
@@ -64,7 +77,7 @@ int main(int argc, char **argv) {
 
     /* Cerca Hash */
     char s[MAX_LENGTH];
-    for(int j=0; j < 3; j++) {
+    for(int j=0; j < 1; j++) {
       //      while ( l < 2 ) {
       printf ("\nInserire hashtag da cercare: ");
       fgets(s, MAX_LENGTH, stdin);
@@ -92,13 +105,13 @@ int main(int argc, char **argv) {
 	  printf ("\nTweet: \n");
 	  /* Stampo tweet relativi */
 	  for (int j = 0; j < H[h].occur_f; ++j)	  
-	    stampa_tweet( H[h].occur[j], T, U );	  
+	    stampa_tweet( H[h].occur[j], T, U, H );	  
 	}
       }
     }
   }
   else
-    printf ("No #hashtag found\n");
+    printf ("\n No #hashtag found\n");
 
   if (line)
     free(line);

@@ -48,38 +48,57 @@ int add(int x, int* a, int* free_p, int len_a) {
   return check;
 }
 
-void stampa_tweet(int id, Tweet* T, User* U) {
+void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H) {
 
   int a = T[id].author;
 
   printf ("\n Tweet[%d] %s (%s) scrive:\n %s\n",id, \
 	  U[a].name, U[a].screen_name, T[id].text);
 
-  /* Print Users */
-  if ( T[id].udest != 0 ) {
-    if ( T[id].udest > 10 || T[id].udest < 0 )
+  if(T[id].nhash > 0){
+    printf ("  #[ ");
+    for (int j = 0; j < T[id].nhash; ++j)
       {
+	int hg = T[id].hash[j];
+	printf ("(%d)%s",hg,H[hg].tag);
+      }
+    printf (" ]\n");
+  }
+
+  /* Print dest Users */
+  if ( T[id].udest != 0 ) {
+    if ( T[id].udest > 10 || T[id].udest < 0 ) {
 	printf ("udest anomalo = %d\n", T[id].udest );
 	assert (T[id].udest <= 10); // evito overflow    
       }
-    int u = 0;
-    while (u < T[id].udest) {
-      printf (" @user[%d] : %s (%s)\n",u, \
-	      U[T[id].dest[u]].name, U[T[id].dest[u]].screen_name);
-      u++;
-    }    
+    else {
+      int u = 0;
+      while (u < T[id].udest) {
+	printf ("  @user[%d] : %s (%s)\n",u, \
+		U[T[id].dest[u]].name, U[T[id].dest[u]].screen_name);
+	u++;
+      }    
+    }
   }
 }
 
-void print_at(int iduser, User* U) {
-  int a;
-  printf ("%s @[\n",U[iduser].name);
-  for (int u = 0; u < U[iduser].at_f; ++u)
-    {
-      a = U[iduser].at[u];
-      printf ("%s, ", U[a].screen_name);
-    }
-  printf (" ]\n");
+void stampa_utente(int id, User* U) {
+  printf (" Utente[%d]: %s (%s) ",id, U[id].name, U[id].screen_name); 
+  stampa_at(id, U);
+  printf ("\n");
+}
+
+/* Stampa utenti menzionati da (id) in @[] */
+void stampa_at(int id, User* U) {
+  if( U[id].at_f > 0 ) { 
+    int a; printf ("  @[ ");
+    for (int u = 0; u < U[id].at_f; ++u)
+      {
+	a = U[id].at[u];
+	printf ("%s, ", U[a].screen_name);
+      }
+    printf (" ]\n");
+  }
 }
 
 /*** Hashtags Array ***/
@@ -99,22 +118,11 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 
   int found = cerca_hash(hashtag, H);
 
-    if ( found >= 0 ) // hashtag alredy in array
-      {
-#ifdef HDEBUG
-	printf ("%s già inserita, aggiungo occorrenze\n",hashtag);
-#endif
-	/* Aggiungo id tweet nelle occorrenze */
-	int f = H[found].occur_f;
-	H[found].occur[f] = idtweet;
-	H[found].occur_f = H[found].occur_f + 1;
-
-      }
-    else if (found < 0) {	// new hashtag
+  if (found < 0) {		// new hashtag
       int p = *position;	// prendo la prima posizione libera
       strcpy( H[p].tag, hashtag );
-      H[p].occur[0] = idtweet;
-      H[p].occur_f = 1;
+
+      H[p].occur_f = 0;
 
       /* // inizializzo usedby[] */
       /* for (int i = 0; i < DIM; ++i) */
@@ -126,6 +134,12 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
       *(position) = p+1;
       found = p;
     }
+
+    /* Aggiungo sempre id tweet nelle occorrenze */
+    int f = H[found].occur_f;
+    H[found].occur[f] = idtweet;
+    H[found].occur_f = H[found].occur_f + 1;
+
 
   return found;	       /* ritorna posizione dell'hashtag nell'array */
 
@@ -145,32 +159,27 @@ int cerca_user(char* utente, User* U) {
   return found;
 }
 
-int inserisci_user(char* sname, int idtweet, User* U, int* position) {
+int inserisci_user(char* sname, int idtweet, User* U, int* position, int u) {
 
   int found = cerca_user(sname, U);
 
-    if ( found >= 0 ) // user alredy in array
-      {
-#ifdef HDEBUG
-	printf ("%s già inserito, aggiungo occorrenze\n",sname);
-#endif
-	/* Aggiungo id tweet nei cip */
-	int f = U[found].cip_f;
-	U[found].cip[f] = idtweet;
-	U[found].cip_f = U[found].cip_f + 1;
-
-      }
-    else if (found < 0) {	// new user
+  if (found < 0) {		// new user
       int p = *position;	// prendo la prima posizione libera
       strcpy( U[p].screen_name, sname );
-      U[p].cip[0] = idtweet;
-      U[p].cip_f = 1;
 
       U[p].at_f = 0;		/* in at[] segna 0 */
+      U[p].cip_f = 0;		/* e in cip[] */
 
       found = p;
       *(position) = p+1;
     }
 
-  return found;	       /* ritorna posizione dell'hashtag nell'array */
+    /* Aggiungo id tweet nei cip SOLO se è l'autore */
+    if( u == 0 ) { 
+      int f = U[found].cip_f;
+      U[found].cip[f] = idtweet;
+      U[found].cip_f = U[found].cip_f + 1;
+    }
+
+  return found;	       /* ritorna posizione dell'utente nell'array */
 }

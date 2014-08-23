@@ -15,10 +15,10 @@ void search_w(char* parola, char* text, int idhash, int idtweet, Hashtag* H, int
   word = strtok (text, " ',;:");
   while (word != NULL) {
 
-    int len = strlen(word);
-    /* printf ("word: %s\n",word); */
+    int lenw = strlen(word);
+    printf ("word: %s\n",word);
 
-    if( (len == len_p) && (strncmp(word, parola,len_p) == 0) ) {
+    if( (lenw >= len_p) && (strncmp(word, parola,len_p) == 0) ) {
       add(idtweet, H[idhash].impl, &H[idhash].impl_f, L); *himpl = *himpl +1;
     }
 
