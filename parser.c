@@ -1,7 +1,8 @@
-/* parser.h
+/* 
+ * parser.c
  * Parser line and save Tweet 
  */
-
+#include "def.h"
 #include "jsmn/jsmn.h"
 
 #define TOKEN_EQ(t, tok_start, tok_end, tok_type) \
@@ -103,7 +104,12 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	    else {
 	      t->dest[u-1] = inserisci_user( sname, idtweet, U, pm );
 	      /* aggiungo archi in U */
-	      add(t->dest[u-1], U[t->author].at, &U[t->author].at_free, DIM);
+	      /* printf ("%s nomina %d utenti (per ora). ",U[t->author].screen_name, U[t->author].at_f); */
+	      /* printf ("aggiungo %d in .at[] (dal tweet %d) \n", t->dest[u-1],idtweet); */
+	      if ( add(t->dest[u-1], U[t->author].at, &U[t->author].at_f, NUSER) ) {
+		print_at(t->author, U);
+		ERR("at[] full!");
+	      }
 	    }
 	    screen_name_done = 1; // screen_name salvato
 	  }
@@ -115,7 +121,7 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	    memcpy(name, &aux[tokens[j].start], length);
 	    name[length] = '\0';
 
-	    /* Aggiungo solo il nome nell'array */
+	    /* Aggiungo solo il nome nell'array U */
 	    int n;
 
 	    if (u == 0)
@@ -131,17 +137,16 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 }
 
 
-int SkipToken(jsmntok_t token) {
-  int size = token.size;
-  return size;
-}
+/* int SkipToken(jsmntok_t token) { */
+/*   int size = token.size; */
+/*   return size; */
+/* } */
 
 int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm) {
 
   /* Set mentions and hashs for further check */
   T[i].udest = -1;
   T[i].nhash = -1;
-  //pTw->author.name[0] = 0;
 
   int result;		/* inizializzo parser */
   jsmn_parser parser;
@@ -279,15 +284,17 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
   }
 
   /* 
-   * Prima di uscire riempio usedby  
+   * Prima di uscire riempio .usedby[] 
    * degli eventuali #hashtag
    */
   if(T[i].nhash > 0) {
-    int a = T[i].author;
     int h;
     for (int n = 0; n < T[i].nhash; n++) {
 	h = T[i].hash[n];
-	add(a, H[h].usedby, &H[h].us_free, DIM);
+	//printf ("Aggiungo utenti per #%s (ora siamo a %d)\n",H[h].tag, H[h].usedby_f);
+	//printf ("per .usedby[] (tweet %d)", i);
+	if ( add(T[i].author, H[h].usedby, &H[h].usedby_f, DIM) )
+	  ERR("usedby[] full!");       
     }
   }
 

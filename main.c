@@ -1,17 +1,19 @@
 /* main.c - Progetto Algoritmi e Strutture di Dati */
 #define _GNU_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+/* #include <stdio.h> */
+/* #include <stdlib.h> */
+/* #include <string.h> */
+/* #include <assert.h> */
 
-#define NTWEET 10000		/* numero di Tweet da leggere */
-#define NHASH NTWEET/10		/* uso NTWEET come bound */
-#define NUSER NTWEET/2
+/* #define NTWEET 10000		/\* numero di Tweet da leggere *\/ */
+/* #define NHASH NTWEET/10		/\* uso NTWEET come bound *\/ */
+/* #define NUSER NTWEET/2 */
 
 #include "def.h"
-#include "array.c"
-#include "parser.h"
+
+/* #include "array.c" */
+/* #include "parser.c" */
+/* #include "implicit.c" */
 
 int main(int argc, char **argv) {
   FILE* fp;
@@ -28,103 +30,75 @@ int main(int argc, char **argv) {
   Hashtag* H = malloc( NHASH * sizeof(Hashtag) ); int l = 0;
   User* U = malloc ( NUSER * sizeof(User) ); int m = 0;
 
-  /* Creo il Trie */
-  // trie_nodo* radice = crea_nodo();
-
 #ifdef DEBUG 
   printf ("\n\t -- Parse and save Tweet -- \n");
 #endif
   int skipped = 0;
 
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
-    //printf ("\nline: %d\t",j++);
     if ( ParseTweet(line, T, i, H, &l, U, &m) == 0 )
       i++;
     else
       skipped++;
   }
 
-
-#ifdef DEBUG
   /* Stampo gli hashtags */
+  #ifdef DEBUG
   for (int i = 0; i < l; ++i)
-    {
       printf ("H[%d] = %s\n",i,H[i].tag);
-    }
-#endif  
+  #endif
 
   /* Resoconto */
   printf ("\n-> Lette %d righe, salvati %d Tweet, %d saltati \n",i+skipped,i,skipped);
-  printf ("\t Trovati %d #hashtag da %d utenti \n", l, m);
+  printf ("\n\t Trovati %d #hashtag da %d utenti \n", l, m);
 
+  if(l > 0) { // se ci sono hashtag
+    /* Cerco impliciti */
+    printf ("\n\tCerco impliciti...");
+    for (int v = 0; v < l; v++)
+      {
+	lookup_implicit_hash(v, T, H, U);
+      }
+    printf (" Fatto.\n");
 
-/* #ifdef DEBUG */
-/*   printf ("\n\t -- Insert in Trie form Tweet[] saved -- \n"); */
-/* #endif */
-/*   /\* Insert in Trie from Tweet.text *\/ */
-/*   for (i = 0; i < NTWEET; ++i) */
-/*     { */
-/* #ifdef DEBUG */
-/*       stampa_tweet(i,T); */
-/* #endif */
-/*       //InTrie(T[i].text, radice); */
-/*     } */
-/*   fprintf(stderr, "Costruita trie con %d nodi\n", conta_nodi(radice)); */
-
-    //stampa_stringhe(radice);
 
     /* Cerca Hash */
     char s[MAX_LENGTH];
-    for(int j=0; j < 1; j++) {
+    for(int j=0; j < 3; j++) {
       //      while ( l < 2 ) {
-	printf ("\nInserire hashtag da cercare: ");
-	fgets(s, MAX_LENGTH, stdin);
+      printf ("\nInserire hashtag da cercare: ");
+      fgets(s, MAX_LENGTH, stdin);
 
-	// elimino l'a-capo (newline) finale
-	int l = strlen(s);
-	if (s[l - 1] == '\n') {
-	  s[l - 1] = 0;
-	  l = l-1;
-	}
+      // elimino l'a-capo (newline) finale
+      int l = strlen(s);
+      if (s[l - 1] == '\n') {
+	s[l - 1] = 0;
+	l = l-1;
+      }
       
-	if( l < 2 )
-	  printf ("Hashtag troppo corto\n");
+      if( l < 2 )
+	printf ("Hashtag troppo corto\n");
+      else {
+	printf ("Cerco #%s ...",s);
+	int h = cerca_hash(s,H);
+	if (h < 0)	
+	  printf ("non trovato\n");
 	else {
-	  printf ("Cerco #%s ...",s);
-	  int h = cerca_hash(s,H);
-	  if (h < 0)	
-	    printf ("non trovato\n");
-	  else {
-	    printf ("trovato! - occorrenze: \n");
-	    /* Stampo utenti che hanno usato l'# */
-	    printf ("n° utenti che lo usano: %d\n",H[h].us_free);
-	    printf ("usato da: ");
-	    for(int n = 0; n < H[h].us_free; n++)
-	      printf ("%s ", U[ H[h].usedby[n] ].screen_name);
-	    printf ("\n");
-	    /* Stampo tweet relativi */
-	    for (int j = 0; j < H[h].free; ++j)	  
-	      stampa_tweet( H[h].occur[j], T, U );	  
-	  }
+	  printf ("trovato!\n");
+	  /* Stampo utenti che hanno usato l'# */
+	  printf ("usato da %d utenti: ",H[h].usedby_f);
+	  for(int n = 0; n < H[h].usedby_f; n++)
+	    printf ("%s ", U[ H[h].usedby[n] ].screen_name);
+	  printf ("\nTweet: \n");
+	  /* Stampo tweet relativi */
+	  for (int j = 0; j < H[h].occur_f; ++j)	  
+	    stampa_tweet( H[h].occur[j], T, U );	  
 	}
-	//}	
+      }
     }
-
-    /*   trie_nodo* nodo_prefisso = cerca(radice, s, 1); */
-    /*   if (nodo_prefisso) { */
-    /* 	char out[MAX_LENGTH]; */
-    /* 	// copia il prefisso iniziale nella stringa corrente */
-    /* 	strcpy(out, s); */
-
-    /* 	// visita tutti i completamenti */
-    /* 	stampa_stringhe_visita(nodo_prefisso, out, strlen(s)); */
-    /*   } */
-    /*   else */
-    /* 	printf("Prefisso non trovato\n"); */
-    /*   printf("\n"); */
-    /* } */
-
-
+  }
+  else
+    printf ("No #hashtag found\n");
 
   if (line)
     free(line);

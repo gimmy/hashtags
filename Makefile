@@ -1,9 +1,10 @@
 CC= clang #gcc
-CFLAGS=-std=c99
-#CFLAGS=-O0 -g -DDEBUG -std=c99	# for debug
+#CFLAGS=-std=c99
+CFLAGS=-O0 -g -std=c99		# for debug
+#CFLAGS=-O0 -g -DDEBUG -std=c99	# for verbose debug
 LDFLAGS=
-SOURCE=main.c
-HEADER=def.h parser.h filter.h trie.h
+SOURCE=main.c parser.c array.c implic.c
+HEADER=def.h #filter.h trie.h
 OBJECTS= $(SOURCE:.c=.o)
 EXECUTABLE=main
 TMPFILES= *~ a.out
@@ -25,9 +26,10 @@ $(EXECUTABLE): $(OBJECTS)
 	@echo -n $(WORK) $(WHITE)"Linking..."$(CLOSE)"\t"; $(CC) $(LDFLAGS) $(OBJECTS) -o $@
 	@echo -n  "\t"$(GREEN)[$(CLOSE)$(WHITE)"Done"$(CLOSE)$(GREEN)]$(CLOSE)
 
-%.o: %.c $(HEADER)
-	@echo -n $(WORK) $(WHITE)"Compiling" $@ $(CLOSE); $(CC) $(CFLAGS) -c $< -o $@
+%.o: %.c
+	@echo -n $(WORK) $(WHITE)"Compiling" $< $(CLOSE); $(CC) $(CFLAGS) -c $< -o $@
 	@echo  "\t"$(GREEN)[$(CLOSE)$(WHITE)"Done"$(CLOSE)$(GREEN)]$(CLOSE)
+
 clean:
 	@echo $(WORK) $(WHITE)"Clean useless files"$(CLOSE)
 	@rm -f $(TMPFILES) $(OBJECTS) $(EXECUTABLE)

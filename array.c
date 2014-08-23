@@ -1,5 +1,7 @@
 /* array.c - Progetto Algoritmi e Strutture di Dati */
 
+#include "def.h"
+
 /* 
  * Cerca intero in un array:
  * ritorna posizione dell'elemento
@@ -18,22 +20,69 @@ int cerca(int x, int* array, int N) {
 
 /* 
  * Aggiunge intero x nell'array a,
- * solo se non presente, nella 
- * prima posizione libera (free_p).
+ * nella prima posizione libera (free_p)
+ * solo se non presente.
  */
-void add(int x, int* a, int* free_p, int len_a) {
+int add(int x, int* a, int* free_p, int len_a) {
 
-  int p = cerca(x, a, len_a);
+  int p = cerca(x, a, *free_p);
+  int check = 0;
 
   if ( p == -1 ) {
-    a[*free_p] = x;
-    p = *free_p;
-    *free_p = *free_p +1;
+      p = *free_p;		// prendo prima posizione libera
+      //printf ("(inizio) free_p: %d, len_a: %d\n",p, len_a);
+      if ( p+1 < len_a ) {
+	a[p] = x;
+	*free_p = p+1;		// aggiorno 
+      }
+      else {
+	check = 1;
+	/* printf (" [ "); */
+	/* for (int j = 0; j < len_a; ++j) */
+	/*   printf ("%d ",a[j]); */
+	/* printf (" ] \n"); */
+	//	ERR("Full array!");
+      }
+  }
+  //printf ("(uscita) free_p: %d, len_a: %d\n",p, len_a);
+  return check;
+}
+
+void stampa_tweet(int id, Tweet* T, User* U) {
+
+  int a = T[id].author;
+
+  printf ("\n Tweet[%d] %s (%s) scrive:\n %s\n",id, \
+	  U[a].name, U[a].screen_name, T[id].text);
+
+  /* Print Users */
+  if ( T[id].udest != 0 ) {
+    if ( T[id].udest > 10 || T[id].udest < 0 )
+      {
+	printf ("udest anomalo = %d\n", T[id].udest );
+	assert (T[id].udest <= 10); // evito overflow    
+      }
+    int u = 0;
+    while (u < T[id].udest) {
+      printf (" @user[%d] : %s (%s)\n",u, \
+	      U[T[id].dest[u]].name, U[T[id].dest[u]].screen_name);
+      u++;
+    }    
   }
 }
 
+void print_at(int iduser, User* U) {
+  int a;
+  printf ("%s @[\n",U[iduser].name);
+  for (int u = 0; u < U[iduser].at_f; ++u)
+    {
+      a = U[iduser].at[u];
+      printf ("%s, ", U[a].screen_name);
+    }
+  printf (" ]\n");
+}
 
-/* Hashtags Array */
+/*** Hashtags Array ***/
 
 int cerca_hash(char* parola, Hashtag* H) {
   int found = -1; int i = 0;
@@ -56,16 +105,23 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 	printf ("%s già inserita, aggiungo occorrenze\n",hashtag);
 #endif
 	/* Aggiungo id tweet nelle occorrenze */
-	int f = H[found].free;
+	int f = H[found].occur_f;
 	H[found].occur[f] = idtweet;
-	H[found].free = H[found].free + 1;
+	H[found].occur_f = H[found].occur_f + 1;
 
       }
     else if (found < 0) {	// new hashtag
       int p = *position;	// prendo la prima posizione libera
       strcpy( H[p].tag, hashtag );
       H[p].occur[0] = idtweet;
-      H[p].free = 1;
+      H[p].occur_f = 1;
+
+      /* // inizializzo usedby[] */
+      /* for (int i = 0; i < DIM; ++i) */
+      /* 	H[p].usedby[i] = -1; */
+
+      H[p].usedby_f = 0;
+      H[p].impl_f = 0;
 
       *(position) = p+1;
       found = p;
@@ -76,7 +132,7 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 }
 
 
-/* User Array */
+/*** User Array ***/
 
 int cerca_user(char* utente, User* U) {
   int found = -1; int i = 0;
@@ -98,22 +154,22 @@ int inserisci_user(char* sname, int idtweet, User* U, int* position) {
 #ifdef HDEBUG
 	printf ("%s già inserito, aggiungo occorrenze\n",sname);
 #endif
-	/* Aggiungo id tweet nelle occorrenze */
-	int f = U[found].free;
+	/* Aggiungo id tweet nei cip */
+	int f = U[found].cip_f;
 	U[found].cip[f] = idtweet;
-	U[found].free = U[found].free + 1;
+	U[found].cip_f = U[found].cip_f + 1;
 
       }
     else if (found < 0) {	// new user
       int p = *position;	// prendo la prima posizione libera
       strcpy( U[p].screen_name, sname );
       U[p].cip[0] = idtweet;
-      U[p].free = 1;
+      U[p].cip_f = 1;
 
-      U[p].at_free = 0;		/* in at[] segna 0 */
+      U[p].at_f = 0;		/* in at[] segna 0 */
 
-      *(position) = p+1;
       found = p;
+      *(position) = p+1;
     }
 
   return found;	       /* ritorna posizione dell'hashtag nell'array */

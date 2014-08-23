@@ -1,6 +1,15 @@
 /* def.h */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+
+#define NTWEET 10000		/* numero di Tweet da leggere */
+#define NHASH NTWEET/10		/* uso NTWEET come bound */
+#define NUSER NTWEET/2
 
 #define L 100
+#define M 1000
 #define DIM 50
 #define LEN 140*2		// TODO: unparsed unicode make text larger!
 #define ERR(msg) { fprintf(stderr, "%s\n", msg); exit(2); }
@@ -12,9 +21,9 @@ typedef struct {
   char name[DIM];
   char screen_name[DIM];
   int cip[L];			/* elenco Tweet dell'utente */
-  int free;			// prima posizione libera in cip
-  int at[DIM];			/* @utenti adiacenti */
-  int at_free;			// prima posizione libera in at
+  int cip_f;			// prima posizione libera in cip
+  int at[NUSER];		/* @utenti adiacenti */
+  int at_f;			// prima posizione libera in at
 } User;
 
 typedef struct {
@@ -29,32 +38,38 @@ typedef struct {
 typedef struct {
   char tag[DIM];
   int occur[L]; 		/* Tweet in cui compare l'hashtag */
-  int free;			// prima posizione libera in occur
+  int occur_f;			// prima posizione libera in occur
   int usedby[DIM];
-  int us_free;
+  int usedby_f;
+  int impl[L];			/* Occorrenze implicite */
+  int impl_f;
 } Hashtag;
 
+Tweet* T; Hashtag* H; User* U;
 
-void stampa_tweet(int id, Tweet* T, User* U) {
+/* Function prototype */
 
-  int a = T[id].author;
+/* Int array */
+int cerca(int x, int* array, int N);
+int add(int x, int* a, int* free_p, int len_a);
 
-  printf ("\n Tweet[%d] %s (%s) scrive:\n %s\n",id, \
-	  U[a].name, U[a].screen_name, T[id].text);
+void print_at(int iduser, User* U);
+void stampa_tweet(int id, Tweet* T, User* U);
 
-  /* Print Users */
-  if ( T[id].udest != 0 ) {
-    if ( T[id].udest > 10 || T[id].udest < 0 )
-      {
-	printf ("udest anomalo = %d\n", T[id].udest );
-	assert (T[id].udest <= 10); // evito overflow    
-      }
-    int u = 0;
-    while (u < T[id].udest) {
-      printf (" @user[%d] : %s (%s)\n",u, \
-	      U[T[id].dest[u]].name, U[T[id].dest[u]].screen_name);
-      u++;
-    }    
-  }
+/* Hashtag array */
+int cerca_hash(char* parola, Hashtag* H);
+int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position);
 
-}
+/* User array */
+int cerca_user(char* utente, User* U);
+int inserisci_user(char* sname, int idtweet, User* U, int* position);
+
+/* Parser */
+void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl);
+void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm);
+int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm);
+
+
+/* Implicit hashtag */
+void search_w(char* parola, char* text, int idhash, int idtweet, Hashtag* H, int* himpl);
+void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U);
