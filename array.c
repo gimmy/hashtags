@@ -85,7 +85,7 @@ void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H) {
 void stampa_utente(int id, User* U) {
   printf (" Utente[%d]: %s (%s) ",id, U[id].name, U[id].screen_name); 
   stampa_at(id, U);
-  printf ("\n");
+  /* printf ("\n"); */
 }
 
 /* Stampa utenti menzionati da (id) in @[] */

@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   //#endif
 
   /* Stampo utenti */
-  printf ("\n User trovati: \n");
+  printf ("\n User trovati: \n\n");
   for (int j = 0; j < m; ++j)
     stampa_utente(j, U);
 

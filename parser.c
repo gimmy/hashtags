@@ -67,10 +67,19 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
       /* Parse */
       int r;			
       jsmn_parser p;
-      jsmntok_t tokens[128];
+      jsmntok_t tokens[256];
 
       jsmn_init(&p);
-      r = jsmn_parse(&p, aux, strlen(aux), tokens, 128);
+      r = jsmn_parse(&p, aux, strlen(aux), tokens, 256);
+
+#ifdef DEBUG
+      switch (r) {
+      case -2: ERR("bad token, JSON string is corrupted."); break;
+      case -1: ERR("not enough tokens, JSON string is too large"); break;
+      case -3: ERR("JSON string is too short, expecting more JSON data"); break;
+      default: printf("Everything went fine. String was parsed.\n"); break;
+      }
+#endif
 
       int screen_name_done = 0;
       int name_done = 0;
@@ -86,10 +95,10 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
       //printf ("token user: %s\n",aux);    
 #endif
 	  
-      for ( int j = 1; (tokens[j].end <= end) && (!screen_name_done || !name_done); j++ ) { 
+      for ( int j = 1; (tokens[j].end <= end) && (!screen_name_done || !name_done); ++j ) { 
 
 	if ( !screen_name_done && TOKEN_STRING(aux, tokens[j], "screen_name") ) {
-	    j = j+1;
+	  j++;
 	    /* Save screen_name */
 	    length = tokens[j].end - tokens[j].start;
 	    char sname[length];
@@ -141,7 +150,11 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
   T[i].udest = -1;
   T[i].nhash = -1;
 
-  int result;		/* inizializzo parser */
+  int text_saved = 0;
+  int stop = 0;
+
+  /* inizializzo parser */
+  int result;			
   jsmn_parser parser;
   jsmntok_t tokens[256];
 
@@ -149,7 +162,6 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
   result = jsmn_parse(&parser, js, strlen(js), tokens, 256);
 
   unsigned int length = 0;
-  int stop = 0;
 
   if (tokens[0].type == JSMN_OBJECT) {
     int EndTweet = tokens[0].end; // lunghezza del Tweet
@@ -163,16 +175,19 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 
 
     // finché non arrivo in fondo al Tweet
-    for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) {
+    int j = 1;
+    while( (tokens[j].end <= EndTweet) && !stop ) {
+      //    for ( int j = 1; (tokens[j].end <= EndTweet) && !stop; j++ ) {
 
       if (tokens[j].type == JSMN_STRING || tokens[j].type == JSMN_PRIMITIVE) {		  
 
-	if ( (T[i].text[0] == 0) && TOKEN_STRING(js, tokens[j], "text") ) {
+	if ( !text_saved && TOKEN_STRING(js, tokens[j], "text") ) {
 	  j = j+1; 
 	  /* Salvo testo in T[i].text */
 	  length = tokens[j].end - tokens[j].start;
 	  memcpy(T[i].text, &js[tokens[j].start], length);
 	  T[i].text[length] = '\0';
+	  text_saved = 1;
 	}
 
 	/** Grep info from Tweet **/
@@ -273,6 +288,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	  stop = 1; // mi posso fermare
 	}
       }
+      j++;
     }
   }
 
@@ -290,6 +306,12 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	  ERR("usedby[] full!");       
     }
   }
+  else if (T[i].nhash == 0)
+    {
+      printf ("punti hashtag qui\n");
+    }
+  else 
+    printf ("che è successo?\n");
 
   /* 
    * ...e anche .at[] con gli  
