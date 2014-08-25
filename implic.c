@@ -51,7 +51,7 @@ void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U) {
 	}
     }
   if( himpl > 0 )
-    printf ("\t -> %d (#)%s ",himpl, h.tag);
+    printf (" %d (#)%s, ",himpl, h.tag);
   /* else */
   /*   printf ("\t (nulla) "); */
 }

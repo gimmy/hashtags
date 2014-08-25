@@ -4,12 +4,12 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTWEET 10000		/* numero di Tweet da leggere */
+#define NTWEET 20000		/* numero di Tweet da leggere */
 #define NHASH NTWEET		/* uso NTWEET come bound */
 #define NUSER NTWEET
 
 #define L 100
-#define M 1000
+#define M 2000
 #define DIM 50
 #define LEN 140*2		// TODO: unparsed unicode make text larger!
 #define ERR(msg) { fprintf(stderr, "%s\n", msg); exit(2); }
@@ -68,6 +68,7 @@ int cerca_user(char* utente, User* U);
 int inserisci_user(char* sname, int idtweet, User* U, int* position, int u);
 
 /* Parser */
+void check_result(int r, int s);
 void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl);
 void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm);
 int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm);

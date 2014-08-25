@@ -21,17 +21,26 @@
 //#define JSMN_STRICT
 #include "jsmn/jsmn.c"
 
-void check_result(int r) {
-      switch (r) {
-      case -2: ERR("bad token, JSON string is corrupted."); break;
-      case -1: ERR("not enough tokens, JSON string is too large"); break;
-      case -3: ERR("JSON string is too short, expecting more JSON data"); break;
-      default: 
+void check_result(int r, int s) {
+
+  if(r < 0) {
+    switch (s) {
+    case 0: printf("parsing Tweet \n"); break;
+    case 1: printf("parsing Hashtag \n"); break;
+    case 2: printf("parsing User \n"); break;
+    default: 	printf("OK, string was parsed.\n"); break;
+    }
+  }
+  switch (r) {
+  case -2: ERR("bad token, JSON string is corrupted."); break;
+  case -1: ERR("not enough tokens, JSON string is too large"); break;
+  case -3: ERR("JSON string is too short, expecting more JSON data"); break;
+  default: 
 #ifdef DEBUG
-	printf("OK, string was parsed.\n");
+    printf("OK, string was parsed.\n");
 #endif
-	break;
-      }
+    break;
+  }
 
 }
 
@@ -67,7 +76,7 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 
       int done = 0; // cambiare quando finito
 
-      check_result(r);
+      check_result(r, 1);
 	  
       for ( int j = 1; (tokens[j].end <= end) && !done; j++ ) { 
 
@@ -111,7 +120,7 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 256);
 
-      check_result(r);
+      check_result(r, 2);
 
       int screen_name_done = 0;
       int name_done = 0;
@@ -182,12 +191,12 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
   /* inizializzo parser */
   int result;			
   jsmn_parser parser;
-  jsmntok_t tokens[512];
+  jsmntok_t tokens[1024];
 
   jsmn_init(&parser);
-  result = jsmn_parse(&parser, js, strlen(js), tokens, 512);
+  result = jsmn_parse(&parser, js, strlen(js), tokens, 1024);
 
-  check_result(result);
+  check_result(result, 0);
 
   unsigned int length = 0;
 
