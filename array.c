@@ -28,14 +28,13 @@ int add(int x, int* a, int* free_p, int len_a) {
   int p = cerca(x, a, *free_p);
   int check = 0;
 
-  if ( p == -1 ) {
+  if ( p == -1 ) {		// se non trovo
       p = *free_p;		// prendo prima posizione libera
-      //printf ("(inizio) free_p: %d, len_a: %d\n",p, len_a);
       if ( p+1 < len_a ) {
-	a[p] = x;
-	*free_p = p+1;		// aggiorno 
+	a[p] = x;		// inserisco e
+	*free_p = p+1;		// avanzo 
       }
-      else {
+      else {			// ritorno 1 se non posso aumentare
 	check = 1;
 	/* printf (" [ "); */
 	/* for (int j = 0; j < len_a; ++j) */
@@ -44,7 +43,6 @@ int add(int x, int* a, int* free_p, int len_a) {
 	//	ERR("Full array!");
       }
   }
-  //printf ("(uscita) free_p: %d, len_a: %d\n",p, len_a);
   return check;
 }
 
@@ -55,37 +53,52 @@ void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H) {
   printf ("\n Tweet[%d] %s (%s) scrive:\n %s\n",id, \
 	  U[a].name, U[a].screen_name, T[id].text);
 
-  if(T[id].nhash > 0){
-    printf ("  #[ ");
-    for (int j = 0; j < T[id].nhash; ++j)
-      {
-	int hg = T[id].hash[j];
-	printf ("(%d)%s",hg,H[hg].tag);
-      }
-    printf (" ]\n");
-  }
+  /* if(T[id].nhash > 0){ */
+  /*   printf ("  #[ "); */
+  /*   for (int j = 0; j < T[id].nhash; ++j) */
+  /*     { */
+  /* 	int hg = T[id].hash[j]; */
+  /* 	printf ("%s ", H[hg].tag); */
+  /*     } */
+  /*   printf ("]\n"); */
+  /* } */
 
-  /* Print dest Users */
-  if ( T[id].udest != 0 ) {
-    if ( T[id].udest > 10 || T[id].udest < 0 ) {
-	printf ("udest anomalo = %d\n", T[id].udest );
-	assert (T[id].udest <= 10); // evito overflow    
+  /* /\* Print dest Users *\/ */
+  /* if ( T[id].udest != 0 ) { */
+  /*   if ( T[id].udest > 10 || T[id].udest < 0 ) { */
+  /* 	printf ("udest anomalo = %d\n", T[id].udest ); */
+  /* 	assert (T[id].udest <= 10); // evito overflow     */
+  /*     } */
+  /*   else { */
+  /*     int u = 0; */
+  /*     while (u < T[id].udest) { */
+  /* 	printf ("  @user[%d] : %s (%s)\n",u, \ */
+  /* 		U[T[id].dest[u]].name, U[T[id].dest[u]].screen_name); */
+  /* 	u++; */
+  /*     }     */
+  /*   } */
+  /* } */
+
+}
+
+void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H) {
+
+  if(H[id].impl_f > 0){
+    Hashtag h = H[id];
+    printf ("\n Occorenze implicite: \n");
+    for (int j = 0; j < h.impl_f; ++j)
+      {
+	int tw = h.impl[j];
+	stampa_tweet(tw, T, U, H);
       }
-    else {
-      int u = 0;
-      while (u < T[id].udest) {
-	printf ("  @user[%d] : %s (%s)\n",u, \
-		U[T[id].dest[u]].name, U[T[id].dest[u]].screen_name);
-	u++;
-      }    
-    }
+    printf ("\n");
   }
 }
 
 void stampa_utente(int id, User* U) {
   printf (" Utente[%d]: %s (%s) ",id, U[id].name, U[id].screen_name); 
   stampa_at(id, U);
-  /* printf ("\n"); */
+  printf ("\n");
 }
 
 /* Stampa utenti menzionati da (id) in @[] */
@@ -97,7 +110,7 @@ void stampa_at(int id, User* U) {
 	a = U[id].at[u];
 	printf ("%s, ", U[a].screen_name);
       }
-    printf (" ]\n");
+    printf (" ] ");
   }
 }
 

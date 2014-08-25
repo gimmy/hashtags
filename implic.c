@@ -16,8 +16,9 @@ void search_w(char* parola, char* text, int idhash, int idtweet, Hashtag* H, int
   while (word != NULL) {
 
     int lenw = strlen(word);
-    printf ("word: %s\n",word);
-
+#ifdef DEBUG
+    printf (" %s",word);
+#endif
     if( (lenw >= len_p) && (strncmp(word, parola,len_p) == 0) ) {
       add(idtweet, H[idhash].impl, &H[idhash].impl_f, L); *himpl = *himpl +1;
     }
@@ -30,18 +31,27 @@ void search_w(char* parola, char* text, int idhash, int idtweet, Hashtag* H, int
 void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U) {
   Hashtag h = H[hash]; 
   int himpl = 0;
-
+ 
   for (int i = 0; i < h.usedby_f; ++i)
     {
       User u = U[ h.usedby[i] ]; // prendo un autore
+      //printf (" usato da %s, ",u.name); 
       for (int j = 0; j < u.at_f; ++j)
 	{
 	  User a = U[ u.at[j] ]; // prendo @utente adiacente a u
-	  for (int t = 0; t < a.cip_f; ++t) { // vedo i suoi tweet
-	      search_w(h.tag, T[t].text, hash, t, H, &himpl);
-	    }
+	  //printf ("adiacente a %s.",a.name); 
+	  for (int n = 0; n < a.cip_f; ++n) { 
+	    int t = a.cip[n];	// vedo i suoi tweet
+
+	    char text[LEN];	/* devo usare una variabile di appoggio per strtok */
+	    strncpy(text, T[t].text, LEN);
+	    printf (" \n cerco nel Tweet[%d]:",t);
+	    search_w(h.tag, text, hash, t, H, &himpl);
+	  }
 	}
     }
   if( himpl > 0 )
-    printf ("\n\tTrovati %d implicit for %s ",himpl, h.tag);
+    printf ("\t -> %d (#)%s ",himpl, h.tag);
+  else
+    printf ("\t (nulla) ");
 }
