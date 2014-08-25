@@ -6,7 +6,7 @@
 
 #define NTWEET 10000		/* numero di Tweet da leggere */
 #define NHASH NTWEET		/* uso NTWEET come bound */
-#define NUSER NTWEET/2
+#define NUSER NTWEET
 
 #define L 100
 #define M 1000
@@ -39,7 +39,7 @@ typedef struct {
   char tag[DIM];
   int occur[L]; 		/* Tweet in cui compare l'hashtag */
   int occur_f;			// prima posizione libera in occur
-  int usedby[DIM];
+  int usedby[M];
   int usedby_f;
   int impl[L];			/* Occorrenze implicite */
   int impl_f;
@@ -57,6 +57,7 @@ int add(int x, int* a, int* free_p, int len_a);
 void stampa_utente(int id, User* U);
 void stampa_at(int iduser, User* U);
 void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H);
+void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H);
 
 /* Hashtag array */
 int cerca_hash(char* parola, Hashtag* H);

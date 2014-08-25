@@ -57,8 +57,9 @@ int main(int argc, char **argv) {
   if(l > 0) { // se ci sono hashtag
     /* Stampo gli hashtags */
     //#ifdef DEBUG
-    printf ("\n #: ");
-    for (int i = 0; i < l; ++i)
+    printf ("\n some #: ");
+    int R = rand(); R = R % 30;
+    for (int i = 0; i < R; ++i)
       printf ("%s ", H[i].tag);
     printf ("\n");
     //#endif

@@ -45,13 +45,13 @@ void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U) {
 
 	    char text[LEN];	/* devo usare una variabile di appoggio per strtok */
 	    strncpy(text, T[t].text, LEN);
-	    printf (" \n cerco nel Tweet[%d]:",t);
+	    //printf (" \n cerco nel Tweet[%d]:",t);
 	    search_w(h.tag, text, hash, t, H, &himpl);
 	  }
 	}
     }
   if( himpl > 0 )
     printf ("\t -> %d (#)%s ",himpl, h.tag);
-  else
-    printf ("\t (nulla) ");
+  /* else */
+  /*   printf ("\t (nulla) "); */
 }

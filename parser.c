@@ -67,6 +67,7 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 
       int done = 0; // cambiare quando finito
 
+      check_result(r);
 	  
       for ( int j = 1; (tokens[j].end <= end) && !done; j++ ) { 
 
@@ -181,10 +182,12 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
   /* inizializzo parser */
   int result;			
   jsmn_parser parser;
-  jsmntok_t tokens[256];
+  jsmntok_t tokens[512];
 
   jsmn_init(&parser);
-  result = jsmn_parse(&parser, js, strlen(js), tokens, 256);
+  result = jsmn_parse(&parser, js, strlen(js), tokens, 512);
+
+  check_result(result);
 
   unsigned int length = 0;
 
@@ -245,7 +248,9 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	      
 	      ScanUser(aux, &T[i], i, u, U, pm);
 
-	      while(tokens[j].start < end_u) // scorro fino al prossimo user
+	      // scorro fino al prossimo user
+	      // finché ci sono utenti
+	      while(tokens[j].start < end_u && u < dest_users)  
 		j++;
 	    }
 	      
@@ -335,7 +340,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	h = T[i].hash[n];
 	//printf ("Aggiungo utenti per #%s (ora siamo a %d)\n",H[h].tag, H[h].usedby_f);
 	//printf ("per .usedby[] (tweet %d)", i);
-	if ( add(T[i].author, H[h].usedby, &H[h].usedby_f, DIM) )
+	if ( add(T[i].author, H[h].usedby, &H[h].usedby_f, M) )
 	  ERR("usedby[] full!");       
     }
   }
@@ -353,7 +358,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	u = T[i].dest[n];
 	int check = add( u, U[T[i].author].at, &U[T[i].author].at_f, NUSER);
 	if ( check ) {		// array pieno
-	  stampa_at(T[i].author, U);
+	  //stampa_at(T[i].author, U);
 	  ERR("at[] full!");
 	}
 	/* printf ("%s nomina %d utenti ",U[T[i].author].screen_name, U[T[i].author].at_f); */
