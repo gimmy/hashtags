@@ -31,15 +31,20 @@ void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U) {
   Hashtag h = H[hash]; 
   int himpl = 0;
 
+  printf ("\n\tcerco implicit per %s\n",h.tag);
+ 
   for (int i = 0; i < h.usedby_f; ++i)
     {
       User u = U[ h.usedby[i] ]; // prendo un autore
+      printf ("usato da %s\n",u.name); 
       for (int j = 0; j < u.at_f; ++j)
 	{
 	  User a = U[ u.at[j] ]; // prendo @utente adiacente a u
-	  for (int t = 0; t < a.cip_f; ++t) { // vedo i suoi tweet
-	      search_w(h.tag, T[t].text, hash, t, H, &himpl);
-	    }
+	  printf ("adiacente a %s\n",a.name); 
+	  for (int n = 0; n < a.cip_f; ++n) { 
+	    int t = a.cip[n];	// vedo i suoi tweet
+	    search_w(h.tag, T[t].text, hash, t, H, &himpl);
+	  }
 	}
     }
   if( himpl > 0 )

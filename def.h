@@ -57,6 +57,7 @@ int add(int x, int* a, int* free_p, int len_a);
 void stampa_utente(int id, User* U);
 void stampa_at(int iduser, User* U);
 void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H);
+void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H);
 
 /* Hashtag array */
 int cerca_hash(char* parola, Hashtag* H);
@@ -67,6 +68,8 @@ int cerca_user(char* utente, User* U);
 int inserisci_user(char* sname, int idtweet, User* U, int* position, int u);
 
 /* Parser */
+void check_result(int r);
+void extract(char* save_here, int len_passed, int start, int end, char* js);
 void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl);
 void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm);
 int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm);

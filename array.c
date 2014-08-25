@@ -60,9 +60,9 @@ void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H) {
     for (int j = 0; j < T[id].nhash; ++j)
       {
 	int hg = T[id].hash[j];
-	printf ("(%d)%s",hg,H[hg].tag);
+	printf (" %s", H[hg].tag);
       }
-    printf (" ]\n");
+    printf ("]\n");
   }
 
   /* Print dest Users */
@@ -79,6 +79,19 @@ void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H) {
 	u++;
       }    
     }
+  }
+}
+
+void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H) {
+
+  if(H[id].impl_f > 0){
+    Hashtag h = H[id];
+    printf ("\t Occorenze implicite: \n");
+    for (int j = 0; j < h.impl_f; ++j)
+      {
+	int tw = h.impl[j];
+	stampa_tweet(tw, T, U, H);
+      }
   }
 }
 

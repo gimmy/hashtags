@@ -21,6 +21,20 @@
 //#define JSMN_STRICT
 #include "jsmn/jsmn.c"
 
+void check_result(int r) {
+      switch (r) {
+      case -2: ERR("bad token, JSON string is corrupted."); break;
+      case -1: ERR("not enough tokens, JSON string is too large"); break;
+      case -3: ERR("JSON string is too short, expecting more JSON data"); break;
+      default: 
+#ifdef DEBUG
+	printf("Everything went fine. String was parsed.\n");
+#endif
+	break;
+      }
+
+}
+
 /* Get & save an Hashtag */
 void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
   unsigned int end = strlen(aux); 
@@ -33,6 +47,9 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 128);
+
+      /* Controllo r */
+      check_result(r);
 
       int done = 0; // cambiare quando finito
 
@@ -72,14 +89,8 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 256);
 
-#ifdef DEBUG
-      switch (r) {
-      case -2: ERR("bad token, JSON string is corrupted."); break;
-      case -1: ERR("not enough tokens, JSON string is too large"); break;
-      case -3: ERR("JSON string is too short, expecting more JSON data"); break;
-      default: printf("Everything went fine. String was parsed.\n"); break;
-      }
-#endif
+      /* Check r */
+      check_result(r);
 
       int screen_name_done = 0;
       int name_done = 0;
@@ -99,11 +110,9 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 
 	if ( !screen_name_done && TOKEN_STRING(aux, tokens[j], "screen_name") ) {
 	  j++;
-	    /* Save screen_name */
-	    length = tokens[j].end - tokens[j].start;
-	    char sname[length];
-	    memcpy(sname, &aux[tokens[j].start], length);
-	    sname[length] = '\0';
+	  /* Save screen_name */
+	  char *sname; sname = (char* )malloc(10);
+	  extract(sname, 10, tokens[j].start, tokens[j].end, aux);
 
 	    /* Salvo nell'User array & nel Tweet */
 
@@ -118,10 +127,8 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	  else if ( !name_done && TOKEN_STRING(aux, tokens[j], "name") ) {
 	    j = j+1;
 	    /* Save name */
-	    length = tokens[j].end - tokens[j].start;
-	    char name[length];
-	    memcpy(name, &aux[tokens[j].start], length);
-	    name[length] = '\0';
+	    char *name; name = (char* )malloc(10);
+	    extract(name, 10, tokens[j].start, tokens[j].end, aux);
 
 	    /* Aggiungo solo il nome nell'array U */
 	    int n;
@@ -138,11 +145,17 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
       }
 }
 
+void extract(char* save_here, int len_passed, int start, int end, char* js) {
+  int length = end - start;
 
-/* int SkipToken(jsmntok_t token) { */
-/*   int size = token.size; */
-/*   return size; */
-/* } */
+  if(len_passed < length) { // alloco più spazio
+    save_here = (char* )realloc( save_here, length * sizeof(char) );
+    //printf ("aumento lo spazio (passato:%d necessario:%d)\n",len_passed,length);
+  }
+
+  memcpy(save_here, &js[start], length);
+  save_here[length] = '\0';
+}
 
 int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm) {
 
@@ -156,10 +169,13 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
   /* inizializzo parser */
   int result;			
   jsmn_parser parser;
-  jsmntok_t tokens[256];
+  jsmntok_t tokens[512];
 
   jsmn_init(&parser);
-  result = jsmn_parse(&parser, js, strlen(js), tokens, 256);
+  result = jsmn_parse(&parser, js, strlen(js), tokens, 512);
+
+  /* Chekc result */
+  check_result(result);
 
   unsigned int length = 0;
 
@@ -173,7 +189,6 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
     TOKEN_PRINT(tokens[0]);
 #endif
 
-
     // finché non arrivo in fondo al Tweet
     int j = 1;
     while( (tokens[j].end <= EndTweet) && !stop ) {
@@ -184,9 +199,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	if ( !text_saved && TOKEN_STRING(js, tokens[j], "text") ) {
 	  j = j+1; 
 	  /* Salvo testo in T[i].text */
-	  length = tokens[j].end - tokens[j].start;
-	  memcpy(T[i].text, &js[tokens[j].start], length);
-	  T[i].text[length] = '\0';
+	  extract(T[i].text, LEN, tokens[j].start, tokens[j].end, js);	
 	  text_saved = 1;
 	}
 
@@ -202,22 +215,22 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	    int dest_users = tokens[j].size;
 	    T[i].udest = dest_users; // aggiorno numero di destinatari
 	    
-	    j++; // entro nell'array utenti
+	    j++; // entro nell'array utenti menzionati
 	    int end_u =  tokens[j].end;
 
 	    /* Salvo utenti menzionati */
-	    for (int u = 1; u <= dest_users; u++) {	
+	    for (int u = 1; u <= dest_users; ++u) {	
 
 	      end_u =  tokens[j].end;
 
-	      length = tokens[j].end - tokens[j].start;
-	      char aux[length];
-	      memcpy(aux, &js[tokens[j].start], length);
-	      aux[length] = '\0';
+	      char *aux; aux = (char* )malloc(10);
+	      extract(aux, 10, tokens[j].start, tokens[j].end, js);
 	      
 	      ScanUser(aux, &T[i], i, u, U, pm);
 
-	      while(tokens[j].start < end_u) // scorro fino al prossimo user
+	      // scorro fino al prossimo user,
+	      // se ce ne sono ancora dopo
+	      while( (tokens[j].start < end_u) && (u < dest_users) )
 		j++;
 	    }
 	      
@@ -248,14 +261,14 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	    int end_h =  tokens[j].end;
 
 	    /* Salvo hashtags */
-	    for (int h = 0; h < T[i].nhash; h++) {	
+	    for (int h = 0; h < T[i].nhash; ++h) {	
 
 	      end_h =  tokens[j].end;
 
-	      length = tokens[j].end - tokens[j].start;
-	      char aux[length];
-	      memcpy(aux, &js[tokens[j].start], length);
-	      aux[length] = '\0';
+	      char *aux; aux = (char* )malloc(10);
+	      extract(aux, 10, tokens[j].start, tokens[j].end, js);
+
+	      printf ("aux per #: %s\n\n",aux);
 	      
 	      ScanHash(aux, &T[i], i, h, H, pl);
 
@@ -306,13 +319,14 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	  ERR("usedby[] full!");       
     }
   }
-  else if (T[i].nhash == 0)
-    {
+  else if (T[i].nhash == 0) {
       printf ("punti hashtag qui\n");
     }
-  else 
-    printf ("che è successo?\n");
-
+  else {
+    printf ("hashtag nel tweet: %d\n", T[i].nhash);
+    if(T[i].nhash < 0)
+      ERR("Non ho fatto il parser degli hashtag!");
+  }
   /* 
    * ...e anche .at[] con gli  
    * eventuali @utenti ( archi in U )

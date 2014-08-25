@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   //#endif
 
   /* Stampo utenti */
-  printf ("\n User trovati: \n\n");
+  printf ("\n\n User trovati: \n\n");
   for (int j = 0; j < m; ++j)
     stampa_utente(j, U);
 
@@ -73,7 +73,6 @@ int main(int argc, char **argv) {
 	lookup_implicit_hash(v, T, H, U);
       }
     printf (" Fatto.\n");
-
 
     /* Cerca Hash */
     char s[MAX_LENGTH];
@@ -92,20 +91,22 @@ int main(int argc, char **argv) {
       if( l < 2 )
 	printf ("Hashtag troppo corto\n");
       else {
-	printf ("Cerco #%s ...",s);
+	printf (" Cerco #%s ...",s);
 	int h = cerca_hash(s,H);
 	if (h < 0)	
 	  printf ("non trovato\n");
 	else {
 	  printf ("trovato!\n");
 	  /* Stampo utenti che hanno usato l'# */
-	  printf ("usato da %d utenti: ",H[h].usedby_f);
+	  printf (" Usato da %d utenti: ",H[h].usedby_f);
 	  for(int n = 0; n < H[h].usedby_f; n++)
 	    printf ("%s ", U[ H[h].usedby[n] ].screen_name);
-	  printf ("\nTweet: \n");
+	  printf ("\n Tweet: \n");
 	  /* Stampo tweet relativi */
-	  for (int j = 0; j < H[h].occur_f; ++j)	  
-	    stampa_tweet( H[h].occur[j], T, U, H );	  
+	  for (int j = 0; j < H[h].occur_f; ++j) {
+	    stampa_tweet( H[h].occur[j], T, U, H );
+	    stampa_himpl(h,T,U,H);
+	  }
 	}
       }
     }
