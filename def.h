@@ -4,7 +4,7 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTWEET 50000		/* numero di Tweet da leggere */
+#define NTWEET 60000		/* numero di Tweet da leggere */
 #define NHASH NTWEET/2		/* uso NTWEET come bound */
 #define NUSER NTWEET
 

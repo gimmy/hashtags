@@ -56,6 +56,7 @@ void check_result(int r, int s) {
 /*   save_here[length] = '\0'; */
 /* } */
 
+
 /* Get & save an Hashtag */
 void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
   unsigned int end = strlen(aux); 
@@ -72,9 +73,6 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 128);
-
-      /* Controllo r */
-      check_result(r);
 
       int done = 0; // cambiare quando finito
 
@@ -122,7 +120,6 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
       jsmn_init(&p);
       r = jsmn_parse(&p, aux, strlen(aux), tokens, 256);
 
-      /* Check r */
       check_result(r, 2);
 
       int screen_name_done = 0;
@@ -157,8 +154,10 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	  else if ( !name_done && TOKEN_STRING(aux, tokens[j], "name") ) {
 	    j = j+1;
 	    /* Save name */
-	    char *name; name = (char* )malloc(10);
-	    extract(name, 10, tokens[j].start, tokens[j].end, aux);
+	    length = tokens[j].end - tokens[j].start;
+	    char name[length];
+	    memcpy(name, &aux[tokens[j].start], length);
+	    name[length] = '\0';
 
 	    /* char *name; name = (char* )malloc(15); */
 	    /* extract(name, 15, tokens[j].start, tokens[j].end, aux); */
@@ -197,7 +196,6 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
   jsmn_init(&parser);
   result = jsmn_parse(&parser, js, strlen(js), tokens, 1024);
 
-  /* Chekc result */
   check_result(result, 0);
 
   unsigned int length = 0;
@@ -212,6 +210,7 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
     TOKEN_PRINT(tokens[0]);
 #endif
 
+
     // finché non arrivo in fondo al Tweet
     int j = 1;
     while( (tokens[j].end <= EndTweet) && !stop ) {
@@ -222,7 +221,9 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	if ( !text_saved && TOKEN_STRING(js, tokens[j], "text") ) {
 	  j = j+1; 
 	  /* Salvo testo in T[i].text */
-	  extract(T[i].text, LEN, tokens[j].start, tokens[j].end, js);	
+	  length = tokens[j].end - tokens[j].start;
+	  memcpy(T[i].text, &js[tokens[j].start], length);
+	  T[i].text[length] = '\0';
 	  text_saved = 1;
 #ifdef DEBUG
 	  printf ("%s\n",T[i].text);
@@ -241,22 +242,24 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	    int dest_users = tokens[j].size;
 	    T[i].udest = dest_users; // aggiorno numero di destinatari
 	    
-	    j++; // entro nell'array utenti menzionati
+	    j++; // entro nell'array utenti
 	    int end_u =  tokens[j].end;
 
 	    /* Salvo utenti menzionati */
-	    for (int u = 1; u <= dest_users; ++u) {	
+	    for (int u = 1; u <= dest_users; u++) {	
 
 	      end_u =  tokens[j].end;
 
-	      char *aux; aux = (char* )malloc(10);
-	      extract(aux, 10, tokens[j].start, tokens[j].end, js);
+	      length = tokens[j].end - tokens[j].start;
+	      char aux[length];
+	      memcpy(aux, &js[tokens[j].start], length);
+	      aux[length] = '\0';
 	      
 	      ScanUser(aux, &T[i], i, u, U, pm);
 
-	      // scorro fino al prossimo user,
-	      // se ce ne sono ancora dopo
-	      while( (tokens[j].start < end_u) && (u < dest_users) )
+	      // scorro fino al prossimo user
+	      // finché ci sono utenti
+	      while(tokens[j].start < end_u && u < dest_users)  
 		j++;
 	    }
 	      
@@ -287,9 +290,10 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	    int end_h =  tokens[j].end;
 
 	    /* Salvo hashtags */
-	    for (int h = 0; h < T[i].nhash; ++h) {	
+	    for (int h = 0; h < T[i].nhash; h++) {	
 
 	      end_h =  tokens[j].end;
+
 
 	      length = tokens[j].end - tokens[j].start;
 	      char aux[length];
@@ -298,12 +302,11 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 
 	      /* char *aux; aux = (char* )malloc(10); */
 	      /* extract(aux, 10, tokens[j].start, tokens[j].end, js); */
+
 	      
 	      ScanHash(aux, &T[i], i, h, H, pl);
 
-	      // scorro fino al prossimo hashtag
-	      // se ce ne sono ancora dopo
-	      while( (tokens[j].start < end_h) && (h < T[i].nhash) )
+	      while(tokens[j].start < end_h) // scorro fino al prossimo hashtag
 		j++;
 	    }
 	      

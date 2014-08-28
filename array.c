@@ -95,18 +95,6 @@ void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H) {
   }
 }
 
-void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H) {
-
-  if(H[id].impl_f > 0){
-    Hashtag h = H[id];
-    printf ("\t Occorenze implicite: \n");
-    for (int j = 0; j < h.impl_f; ++j)
-      {
-	int tw = h.impl[j];
-	stampa_tweet(tw, T, U, H);
-      }
-  }
-}
 
 void stampa_utente(int id, User* U) {
   printf (" Utente[%d]: %s (%s) ",id, U[id].name, U[id].screen_name); 
