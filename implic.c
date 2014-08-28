@@ -16,8 +16,9 @@ void search_w(char* parola, char* text, int idhash, int idtweet, Hashtag* H, int
   while (word != NULL) {
 
     int lenw = strlen(word);
-    printf ("word: %s\n",word);
-
+#ifdef DEBUG
+    printf (" %s",word);
+#endif
     if( (lenw >= len_p) && (strncmp(word, parola,len_p) == 0) ) {
       add(idtweet, H[idhash].impl, &H[idhash].impl_f, L); *himpl = *himpl +1;
     }
@@ -26,27 +27,51 @@ void search_w(char* parola, char* text, int idhash, int idtweet, Hashtag* H, int
   }
 }
 
+/* 
+ * Controlla la presenza implicita
+ * dell'hash nei tweet dell'utente a
+ */
+void view_user_tweet(User a, char* hash, int idhash, Tweet* T, Hashtag* H, int* himpl){
+
+  for (int n = 0; n < a.cip_f; ++n) { 
+    int t = a.cip[n];
+
+    char text[LEN];	            // devo usare una variabile 
+    strncpy(text, T[t].text, LEN);  // di appoggio per strtok
+
+    //printf (" \n cerco nel Tweet[%d]:",t);
+    search_w(hash, text, idhash, t, H, himpl);
+  }
+  /* ..e segno l'utente come controllato per l'hash */
+  add(idhash, a.hash_check, &a.hash_check_f, 100);
+}
+
 /* Trova Hashtag impliciti */
 void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U) {
   Hashtag h = H[hash]; 
   int himpl = 0;
-
-  printf ("\n\tcerco implicit per %s\n",h.tag);
  
   for (int i = 0; i < h.usedby_f; ++i)
     {
       User u = U[ h.usedby[i] ]; // prendo un autore
-      printf ("usato da %s\n",u.name); 
+      view_user_tweet(u, h.tag, hash, T, H, &himpl);
+      //printf (" usato da %s, ",u.name); 
       for (int j = 0; j < u.at_f; ++j)
 	{
 	  User a = U[ u.at[j] ]; // prendo @utente adiacente a u
-	  printf ("adiacente a %s\n",a.name); 
-	  for (int n = 0; n < a.cip_f; ++n) { 
-	    int t = a.cip[n];	// vedo i suoi tweet
-	    search_w(h.tag, T[t].text, hash, t, H, &himpl);
+
+	  /* se non ho già controllato l'utente a per questo hashtag.. */
+	  if( cerca(hash, a.hash_check, a.hash_check_f) < 0 ) {			
+	    //printf ("adiacente a %s.",a.name);
+
+	    /* vedo i suoi tweet */
+	    view_user_tweet(a, h.tag, hash, T, H, &himpl);
 	  }
 	}
     }
+
   if( himpl > 0 )
-    printf ("\n\tTrovati %d implicit for %s ",himpl, h.tag);
+    printf (" %d (#)%s, ",himpl, h.tag);
+  /* else */
+  /*   printf ("\t (nulla) "); */
 }

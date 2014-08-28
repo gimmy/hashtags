@@ -5,10 +5,6 @@
 /* #include <string.h> */
 /* #include <assert.h> */
 
-/* #define NTWEET 10000		/\* numero di Tweet da leggere *\/ */
-/* #define NHASH NTWEET/10		/\* uso NTWEET come bound *\/ */
-/* #define NUSER NTWEET/2 */
-
 #include "def.h"
 
 /* #include "array.c" */
@@ -42,30 +38,32 @@ int main(int argc, char **argv) {
       skipped++;
   }
 
-  /* Stampo gli hashtags */
-  #ifdef DEBUG
-  for (int i = 0; i < l; ++i)
-      printf ("H[%d] = %s\n",i,H[i].tag);
-  #endif
-
   /* Resoconto */
   printf ("\n-> Lette %d righe, salvati %d Tweet, %d saltati \n",i+skipped,i,skipped);
   printf ("\n\t Trovati %d #hashtag da %d utenti \n", l, m);
 
-  //#ifdef DEBUG
+  #ifdef DEBUG
   /* Stampo tweet */
   printf ("\n Tweet letti: \n");
   for (int j = 0; j < i; ++j)	  
     stampa_tweet( j, T, U, H );
-  //#endif
 
   /* Stampo utenti */
   printf ("\n\n User trovati: \n\n");
   for (int j = 0; j < m; ++j)
     stampa_utente(j, U);
-
+  #endif
 
   if(l > 0) { // se ci sono hashtag
+    /* Stampo gli hashtags */
+    //#ifdef DEBUG
+    printf ("\n some #: ");
+    int R = rand(); R = R % 30;
+    for (int i = 0; i < R; ++i)
+      printf ("%s ", H[i].tag);
+    printf ("\n");
+    //#endif
+
     /* Cerco impliciti */
     printf ("\n\tCerco impliciti...");
     for (int v = 0; v < l; v++)
@@ -91,22 +89,24 @@ int main(int argc, char **argv) {
       if( l < 2 )
 	printf ("Hashtag troppo corto\n");
       else {
-	printf (" Cerco #%s ...",s);
+	printf (" Cerco [#%s] ...",s);
 	int h = cerca_hash(s,H);
 	if (h < 0)	
 	  printf ("non trovato\n");
 	else {
-	  printf ("trovato!\n");
+	  printf ("trovato. ");
 	  /* Stampo utenti che hanno usato l'# */
-	  printf (" Usato da %d utenti: ",H[h].usedby_f);
+	  printf ("Usato da %d utenti: ",H[h].usedby_f);
 	  for(int n = 0; n < H[h].usedby_f; n++)
 	    printf ("%s ", U[ H[h].usedby[n] ].screen_name);
-	  printf ("\n Tweet: \n");
+
 	  /* Stampo tweet relativi */
-	  for (int j = 0; j < H[h].occur_f; ++j) {
-	    stampa_tweet( H[h].occur[j], T, U, H );
-	    stampa_himpl(h,T,U,H);
-	  }
+	  printf ("\n Tweet: \n");
+	  for (int j = 0; j < H[h].occur_f; ++j)
+	    stampa_tweet( H[h].occur[j], T, U, H );	  
+
+	  stampa_himpl(h,T,U,H);
+
 	}
       }
     }

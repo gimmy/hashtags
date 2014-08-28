@@ -4,12 +4,12 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTWEET 10000		/* numero di Tweet da leggere */
-#define NHASH NTWEET/10		/* uso NTWEET come bound */
-#define NUSER NTWEET/2
+#define NTWEET 50000		/* numero di Tweet da leggere */
+#define NHASH NTWEET/2		/* uso NTWEET come bound */
+#define NUSER NTWEET
 
 #define L 100
-#define M 1000
+#define M NTWEET/10
 #define DIM 50
 #define LEN 140*2		// TODO: unparsed unicode make text larger!
 #define ERR(msg) { fprintf(stderr, "%s\n", msg); exit(2); }
@@ -24,6 +24,8 @@ typedef struct {
   int cip_f;			// prima posizione libera in cip
   int at[NUSER];		/* @utenti adiacenti */
   int at_f;			// prima posizione libera in at
+  int hash_check[100];		// hashtag impliciti ricercati nei tweet dell'utente
+  int hash_check_f;
 } User;
 
 typedef struct {
@@ -39,7 +41,7 @@ typedef struct {
   char tag[DIM];
   int occur[L]; 		/* Tweet in cui compare l'hashtag */
   int occur_f;			// prima posizione libera in occur
-  int usedby[DIM];
+  int usedby[M];
   int usedby_f;
   int impl[L];			/* Occorrenze implicite */
   int impl_f;
@@ -68,8 +70,7 @@ int cerca_user(char* utente, User* U);
 int inserisci_user(char* sname, int idtweet, User* U, int* position, int u);
 
 /* Parser */
-void check_result(int r);
-void extract(char* save_here, int len_passed, int start, int end, char* js);
+void check_result(int r, int s);
 void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl);
 void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm);
 int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm);

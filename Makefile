@@ -1,7 +1,7 @@
 CC= clang #gcc
 #CFLAGS=-std=c99
-#CFLAGS=-O0 -g -std=c99		# for debug
-CFLAGS=-O0 -g -DDEBUG -std=c99	# for verbose debug
+CFLAGS=-O0 -g -std=c99		# for debug
+#CFLAGS=-O0 -g -DDEBUG -std=c99	# for verbose debug
 LDFLAGS=
 SOURCE=main.c parser.c array.c implic.c
 HEADER=def.h #filter.h trie.h
@@ -35,4 +35,4 @@ clean:
 	@rm -f $(TMPFILES) $(OBJECTS) $(EXECUTABLE)
 run: $(EXECUTABLE)
 	@echo $(INFO)$(CLOSE) $(WHITE)"Run ./"$(EXECUTABLE)$(CLOSE)
-	@./$(EXECUTABLE) K.json
+	@./$(EXECUTABLE) tweet.json
