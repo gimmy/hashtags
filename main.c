@@ -95,9 +95,9 @@ int main(int argc, char **argv) {
 	if (h < 0)	
 	  printf ("non trovato\n");
 	else {
-	  printf ("trovato.");
+	  printf ("trovato. ");
 	  /* Stampo utenti che hanno usato l'# */
-	  printf ("usato da %d utenti: ",H[h].usedby_f);
+	  printf ("Usato da %d utenti: ",H[h].usedby_f);
 	  for(int n = 0; n < H[h].usedby_f; n++)
 	    printf ("%s ", U[ H[h].usedby[n] ].screen_name);
 	  printf ("\nTweet: \n");

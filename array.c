@@ -182,6 +182,7 @@ int inserisci_user(char* sname, int idtweet, User* U, int* position, int u) {
 
       U[p].at_f = 0;		/* in at[] segna 0 */
       U[p].cip_f = 0;		/* e in cip[] */
+      U[p].hash_check_f = 0;	/* e in hash_check */
 
       found = p;
       *(position) = p+1;

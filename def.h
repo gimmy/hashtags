@@ -4,12 +4,12 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTWEET 20000		/* numero di Tweet da leggere */
-#define NHASH NTWEET		/* uso NTWEET come bound */
+#define NTWEET 50000		/* numero di Tweet da leggere */
+#define NHASH NTWEET/2		/* uso NTWEET come bound */
 #define NUSER NTWEET
 
 #define L 100
-#define M 2000
+#define M NTWEET/10
 #define DIM 50
 #define LEN 140*2		// TODO: unparsed unicode make text larger!
 #define ERR(msg) { fprintf(stderr, "%s\n", msg); exit(2); }
@@ -24,6 +24,8 @@ typedef struct {
   int cip_f;			// prima posizione libera in cip
   int at[NUSER];		/* @utenti adiacenti */
   int at_f;			// prima posizione libera in at
+  int hash_check[100];		// hashtag impliciti ricercati nei tweet dell'utente
+  int hash_check_f;
 } User;
 
 typedef struct {
