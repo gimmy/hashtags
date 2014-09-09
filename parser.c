@@ -88,11 +88,22 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 	    memcpy(hash, &aux[tokens[j].start], length);
 	    hash[length] = '\0';
 
-	    /* ... in Hasharray & in Tweet */
-	    t->hash[h] = inserisci_hash( hash, idtweet, H, pl );
+	    /* Evito #RT e affini */
+	    if (length < 3) {
+	      char s[length];
+	      for (int i=0 ; i<length; i++) s[i] = tolower(hash[i]);
+	      if( strncmp(s,"rt",length) == 0 )
+		done = 1;
+	    }
 
-	    done = 1; // salvato
-	  }
+	    if ( !done ) {
+	      /* ... in Hasharray & in Tweet */
+	      t->hash[h] = inserisci_hash( hash, idtweet, H, pl );
+
+	      done = 1; // salvato
+	    }
+
+	}
       }
 }
 
