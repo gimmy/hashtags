@@ -28,7 +28,7 @@ void check_result(int r, int s) {
     case 0: printf("parsing Tweet \n"); break;
     case 1: printf("parsing Hashtag \n"); break;
     case 2: printf("parsing User \n"); break;
-    default: 	printf("OK, string was parsed.\n"); break;
+    default: printf("OK, string was parsed.\n"); break;
     }
   }
   switch (r) {
@@ -37,7 +37,7 @@ void check_result(int r, int s) {
   case -3: ERR("JSON string is too short, expecting more JSON data"); break;
   default: 
 #ifdef DEBUG
-    printf("OK, string was parsed.\n");
+    printf("OK, string parsed by JSMN.\n");
 #endif
     break;
   }

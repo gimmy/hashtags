@@ -1,9 +1,5 @@
 /* main.c - Progetto Algoritmi e Strutture di Dati */
 #define _GNU_SOURCE
-/* #include <stdio.h> */
-/* #include <stdlib.h> */
-/* #include <string.h> */
-/* #include <assert.h> */
 
 #include "def.h"
 
@@ -27,6 +23,7 @@ int main(int argc, char **argv) {
   User* U = malloc ( NUSER * sizeof(User) ); int m = 0;
 
 #ifdef DEBUG 
+  printf (" Allocazione riuscite\n");
   printf ("\n\t -- Parse and save Tweet -- \n");
 #endif
   int skipped = 0;
@@ -65,45 +62,50 @@ int main(int argc, char **argv) {
     //#endif
 
     /* Cerco impliciti */
-    printf ("\n\tCerco impliciti...");
-    for (int v = 0; v < l; v++)
-      {
-	lookup_implicit_hash(v, T, H, U);
-      }
-    printf (" Fatto.\n");
+    /* printf ("\n\tCerco impliciti..."); */
+    /* for (int v = 0; v < l; v++) */
+    /*   { */
+    /* 	lookup_implicit_hash(v, T, H, U); */
+    /*   } */
+    /* printf (" Fatto.\n"); */
 
     /* Cerca Hash */
     char s[MAX_LENGTH];
-    for(int j=0; j < 1; j++) {
+    for(int j=0; j < 3; j++) {
       //      while ( l < 2 ) {
       printf ("\nInserire hashtag da cercare: ");
       fgets(s, MAX_LENGTH, stdin);
 
       // elimino l'a-capo (newline) finale
-      int l = strlen(s);
-      if (s[l - 1] == '\n') {
-	s[l - 1] = 0;
-	l = l-1;
+      int len = strlen(s);
+      if (s[len - 1] == '\n') {
+	s[len - 1] = 0;
+	len = len-1;
       }
       
-      if( l < 2 )
+      if( len < 2 )
 	printf ("Hashtag troppo corto\n");
       else {
 	printf (" Cerco [#%s] ...",s);
-	int h = cerca_hash(s,H);
+	int h = cerca_hash(s,H,l);
 	if (h < 0)	
 	  printf ("non trovato\n");
 	else {
-	  printf ("trovato. ");
+	  printf ("trovato.\n");
 	  /* Stampo utenti che hanno usato l'# */
-	  printf ("Usato da %d utenti: ",H[h].usedby_f);
+	  printf (" Usato da %d utenti: ",H[h].usedby_f);
 	  for(int n = 0; n < H[h].usedby_f; n++)
 	    printf ("%s ", U[ H[h].usedby[n] ].screen_name);
 
 	  /* Stampo tweet relativi */
-	  printf ("\n Tweet: \n");
+	  printf ("\n\n Tweet: \n");
 	  for (int j = 0; j < H[h].occur_f; ++j)
 	    stampa_tweet( H[h].occur[j], T, U, H );	  
+
+	  /* Cerco impliciti */
+	  printf ("\n\tCerco usi impliciti...");
+	  lookup_implicit_hash(h, T, H, U);
+	  printf (" \n");
 
 	  stampa_himpl(h,T,U,H);
 

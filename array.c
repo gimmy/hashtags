@@ -117,9 +117,10 @@ void stampa_at(int id, User* U) {
 
 /*** Hashtags Array ***/
 
-int cerca_hash(char* parola, Hashtag* H) {
+int cerca_hash(char* parola, Hashtag* H, int until) {
   int found = -1; int i = 0;
-  while(i < NHASH && found < 0){
+  assert (until < NHASH);
+  while(i < until && found < 0){
     if ( strcmp(parola, H[i].tag) == 0 )
 	found = i;
     else
@@ -130,10 +131,16 @@ int cerca_hash(char* parola, Hashtag* H) {
 
 int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 
-  int found = cerca_hash(hashtag, H);
+  int p = *position;	// prendo la prima posizione libera
+  int found = 0;
 
-  if (found < 0) {		// new hashtag
-      int p = *position;	// prendo la prima posizione libera
+  if( p > 0 ) {
+    found = cerca_hash(hashtag, H, p);
+  }
+
+  /* Se primo hashtag o nuovo lo inserisco  */
+  if ( p == 0 || found < 0 ) {
+
       strcpy( H[p].tag, hashtag );
 
       H[p].occur_f = 0;
@@ -162,9 +169,10 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 
 /*** User Array ***/
 
-int cerca_user(char* utente, User* U) {
+int cerca_user(char* utente, User* U, int until) {
   int found = -1; int i = 0;
-  while(i < NUSER && found < 0){
+  assert (until < NUSER);
+  while(i < until && found < 0){
     if ( strcmp(utente, U[i].screen_name) == 0 )
 	found = i;
     else
@@ -175,11 +183,21 @@ int cerca_user(char* utente, User* U) {
 
 int inserisci_user(char* sname, int idtweet, User* U, int* position, int u) {
 
-  int found = cerca_user(sname, U);
+  int p = *position;	// prendo la prima posizione libera
 
-  if (found < 0) {		// new user
-      int p = *position;	// prendo la prima posizione libera
-      strcpy( U[p].screen_name, sname );
+  int found = 0;
+
+  if( p > 0 ) {
+    found = cerca_user(sname, U, p);    
+  }    
+
+  /* Se primo utente o nuovo lo inserisco  */
+  if ( p == 0 || found < 0 ) {
+
+    //int len = strlen(sname);
+    //printf ("p: %d \n",p);
+
+    strcpy( U[p].screen_name, sname );
 
       U[p].at_f = 0;		/* in at[] segna 0 */
       U[p].cip_f = 0;		/* e in cip[] */
@@ -193,7 +211,8 @@ int inserisci_user(char* sname, int idtweet, User* U, int* position, int u) {
     if( u == 0 ) { 
       int f = U[found].cip_f;
       U[found].cip[f] = idtweet;
-      U[found].cip_f = U[found].cip_f + 1;
+      assert( f+1 < CIP );
+      U[found].cip_f = f + 1;
     }
 
   return found;	       /* ritorna posizione dell'utente nell'array */

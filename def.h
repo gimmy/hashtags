@@ -4,12 +4,13 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTWEET 26000		/* numero di Tweet da leggere */
-#define NHASH NTWEET/2		/* uso NTWEET come bound */
-#define NUSER NTWEET
+#define NTWEET 40000		/* numero di Tweet da leggere */
+#define NHASH 5000		/* uso NTWEET come bound */
+#define NUSER 10000
 
+#define CIP 600
 #define L 100
-#define M 2800
+#define M NUSER
 #define DIM 50
 #define LEN 140*2		// TODO: unparsed unicode make text larger!
 #define ERR(msg) { fprintf(stderr, "%s\n", msg); exit(2); }
@@ -20,11 +21,11 @@
 typedef struct {
   char name[DIM];
   char screen_name[DIM];
-  int cip[L];			/* elenco Tweet dell'utente */
+  int cip[CIP];			/* elenco Tweet dell'utente */
   int cip_f;			// prima posizione libera in cip
   int at[NUSER];		/* @utenti adiacenti */
   int at_f;			// prima posizione libera in at
-  int hash_check[100];		// hashtag impliciti ricercati nei tweet dell'utente
+  int hash_check[L];		// hashtag impliciti ricercati nei tweet dell'utente
   int hash_check_f;
 } User;
 
@@ -62,11 +63,11 @@ void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H);
 void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H);
 
 /* Hashtag array */
-int cerca_hash(char* parola, Hashtag* H);
+int cerca_hash(char* parola, Hashtag* H, int until);
 int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position);
 
 /* User array */
-int cerca_user(char* utente, User* U);
+int cerca_user(char* utente, User* U, int until);
 int inserisci_user(char* sname, int idtweet, User* U, int* position, int u);
 
 /* Parser */
