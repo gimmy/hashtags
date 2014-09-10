@@ -19,7 +19,7 @@ void search_w(char* parola, char* text, int idhash, int idtweet, Hashtag* H, int
 /* #ifdef DEBUG */
 /*     printf (" %s",word); */
 /* #endif */
-    if( (lenw >= len_p) && (strncmp(word, parola,len_p) == 0) ) {
+    if( (lenw == len_p) && (strncmp(word, parola,len_p) == 0) ) {
       add(idtweet, H[idhash].impl, &H[idhash].impl_f, L); *himpl = *himpl +1;
     }
 
@@ -56,7 +56,7 @@ void view_user_tweet(User a, char* hash, int idhash, Tweet* T, Hashtag* H, int* 
 /* Trova Hashtag impliciti */
 void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U) {
   Hashtag h = H[hash]; 
-  int himpl = 0;
+  int himpl = 0; // totale hashtag impliciti (variabile vestigiale)
  
   for (int i = 0; i < h.usedby_f; ++i)
     {
@@ -79,8 +79,8 @@ void lookup_implicit_hash(int hash, Tweet* T, Hashtag* H, User* U) {
 	}
     }
 
-  if( himpl > 0 )
-    printf (" %d (#)%s trovate. ", himpl, h.tag);
+  if( H[hash].impl_f > 0 )
+    printf (" %d (#)%s trovate. ", H[hash].impl_f, h.tag);
   else
     printf (" (none). ");
 }

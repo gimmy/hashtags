@@ -4,15 +4,15 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTWEET 40000		/* numero di Tweet da leggere */
+#define NTWEET 45000		/* numero di Tweet da leggere */
 #define NHASH 5000		/* uso NTWEET come bound */
-#define NUSER 10000
+#define NUSER 14000
 
 #define CIP 600
 #define L 100
 #define M NUSER
 #define DIM 50
-#define LEN 140*2		// TODO: unparsed unicode make text larger!
+#define LEN 280
 #define ERR(msg) { fprintf(stderr, "%s\n", msg); exit(2); }
 
 #define MAX_LENGTH 512
@@ -51,6 +51,9 @@ typedef struct {
 Tweet* T; Hashtag* H; User* U;
 
 /* Function prototype */
+
+/* convert a string "src" containing escape sequences to UTF-8 */
+int u8_unescape(char *buf, int sz, char *src);
 
 /* Int array */
 int cerca(int x, int* array, int N);

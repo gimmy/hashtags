@@ -84,9 +84,16 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 	    j = j+1;
 	    /* Save hash... */
 	    length = tokens[j].end - tokens[j].start;
-	    char hash[length];
-	    memcpy(hash, &aux[tokens[j].start], length);
-	    hash[length] = '\0';
+	    char buf[length]; int sz = 256;  char hash[length];
+	    memcpy(buf, &aux[tokens[j].start], length);
+	    buf[length] = '\0';
+
+	    /* convert a string "src" containing escape sequences to UTF-8 */
+	    u8_unescape(hash, sz, buf);
+
+	    /* char hash[length]; */
+	    /* memcpy(hash, &aux[tokens[j].start], length); */
+	    /* hash[length] = '\0'; */
 
 	    /* Evito #RT e affini */
 	    if (length < 3) {
@@ -143,9 +150,17 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	  ++j;
 	  /* Save screen_name */
 	  length = tokens[j].end - tokens[j].start;
-	  char sname[length];
-	  memcpy(sname, &aux[tokens[j].start], length);
-	  sname[length] = '\0';
+	  char buf[length]; int sz = 256;  char sname[length];
+	  memcpy(buf, &aux[tokens[j].start], length);
+	  buf[length] = '\0';
+
+	  /* convert a string "src" containing escape sequences to UTF-8 */
+	  u8_unescape(sname, sz, buf);
+
+	  /*  */
+	  /* char sname[length]; */
+	  /* memcpy(sname, &aux[tokens[j].start], length); */
+	  /* sname[length] = '\0'; */
 
 	  /* char *sname; sname = (char* )malloc(15); */
 	  /* extract(sname, 15, tokens[j].start, tokens[j].end, aux); */
@@ -166,9 +181,16 @@ void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm) {
 	    j = j+1;
 	    /* Save name */
 	    length = tokens[j].end - tokens[j].start;
-	    char name[length];
-	    memcpy(name, &aux[tokens[j].start], length);
-	    name[length] = '\0';
+	    char buf[length]; int sz = 256;  char name[length];
+	    memcpy(buf, &aux[tokens[j].start], length);
+	    buf[length] = '\0';
+
+	    /* convert a string "src" containing escape sequences to UTF-8 */
+	    u8_unescape(name, sz, buf);
+
+	    /* char name[length]; */
+	    /* memcpy(name, &aux[tokens[j].start], length); */
+	    /* name[length] = '\0'; */
 
 	    /* char *name; name = (char* )malloc(15); */
 	    /* extract(name, 15, tokens[j].start, tokens[j].end, aux); */
@@ -233,12 +255,21 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
 	  j = j+1; 
 	  /* Salvo testo in T[i].text */
 	  length = tokens[j].end - tokens[j].start;
-	  memcpy(T[i].text, &js[tokens[j].start], length);
-	  T[i].text[length] = '\0';
-	  text_saved = 1;
+	  if(length > LEN) {
+	    printf ("length tweet text: %d\n",length);
+	    assert(length <= LEN);
+	  }
+	  char buf[length]; int sz = 256;
+	  memcpy(buf, &js[tokens[j].start], length);
+	  buf[length] = '\0';
+
+	  /* convert a string "src" containing escape sequences to UTF-8 */
+	  u8_unescape(T[i].text, sz, buf);
+
 #ifdef DEBUG
 	  printf ("%s\n",T[i].text);
 #endif
+	  text_saved = 1;
 	}
 
 	/** Grep info from Tweet **/
