@@ -99,14 +99,16 @@ void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl) {
 	    if (length < 3) {
 	      char s[length];
 	      for (int i=0 ; i<length; i++) s[i] = tolower(hash[i]);
-	      if( strncmp(s,"rt",length) == 0 )
+	      if( strncmp(s,"rt",length) == 0 ) {
+		t->hash[h] = -1; /* segno ed evito in futuro */
 		done = 1;
+	      }
 	    }
 
 	    if ( !done ) {
 	      /* ... in Hasharray & in Tweet */
 	      t->hash[h] = inserisci_hash( hash, idtweet, H, pl );
-
+	      printf ("Insert hashtag H[%d]: #%s in tweet(%d).hash[%d] \n",t->hash[h],hash,idtweet, h);
 	      done = 1; // salvato
 	    }
 
@@ -389,10 +391,12 @@ int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm)
     int h;
     for (int n = 0; n < T[i].nhash; n++) {
 	h = T[i].hash[n];
-	//printf ("Aggiungo utenti per #%s (ora siamo a %d)\n",H[h].tag, H[h].usedby_f);
-	//printf ("per .usedby[] (tweet %d)", i);
-	if ( add(T[i].author, H[h].usedby, &H[h].usedby_f, M) )
-	  ERR("usedby[] full!");       
+	if (h >= 0)  { // se hashtag da considerare
+	  printf ("Aggiungo utente per #%s (hash %d) - erano %d - ",H[h].tag, h, H[h].usedby_f);
+	  printf ("in .usedby[] (tweet %d)\n", i);
+	  if ( add(T[i].author, H[h].usedby, &H[h].usedby_f, M) )
+	    ERR("usedby[] full!");           
+	}
     }
   }
   else if (T[i].nhash < 0) {
