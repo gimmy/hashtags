@@ -3,10 +3,6 @@
 
 #include "def.h"
 
-/* #include "array.c" */
-/* #include "parser.c" */
-/* #include "implicit.c" */
-
 int main(int argc, char **argv) {
   FILE* fp;
   char* line = NULL;
@@ -19,8 +15,9 @@ int main(int argc, char **argv) {
 
   /* Alloco array */
   Tweet* T = malloc( NTWEET * sizeof(Tweet) ); int i = 0;
-  Hashtag* H = malloc( NHASH * sizeof(Hashtag) ); int l = 0;
-  User* U = malloc ( NUSER * sizeof(User) ); int m = 0;
+  int dim_H = 10; int dim_U = 10;
+  Hashtag* H = malloc( dim_H * sizeof(Hashtag) ); int l = 0;
+  User* U = malloc ( dim_U * sizeof(User) ); int m = 0;
 
 #ifdef DEBUG 
   printf (" Allocazione riuscite\n");
@@ -29,7 +26,32 @@ int main(int argc, char **argv) {
   int skipped = 0;
 
   while ( ((read = getline(&line, &len, fp)) != -1) && i < NTWEET ) {
-    if ( ParseTweet(line, T, i, H, &l, U, &m) == 0 )
+
+    /* Verifico raddoppio Hashtag */
+    if ( l+10 > dim_H ) { // se non ho almeno 10 posizioni libere..
+      Hashtag *tmp = realloc( H, sizeof(Hashtag) * ( dim_H * 2 ) );
+      if ( tmp ) {
+	H = tmp;
+	dim_H *= 2;
+	/* printf ("Raddioppio Hashtags, nuova dim H: %d \n",dim_H); */
+      }
+      else
+	ERR("Hashtag realloc error");
+    }
+
+    /* Verifico raddoppio Users */
+    if ( m+10 > dim_U ) { // se non ho almeno 10 posizioni libere..
+      User *tmp = realloc( U, sizeof(User) * ( dim_U * 2 ) );
+      if ( tmp ) {
+	U = tmp;
+	dim_U *= 2;
+	/* printf ("Raddioppio Users, nuova dim U: %d \n",dim_U); */
+      }
+      else
+	ERR("User realloc error");
+    }
+
+    if ( ParseTweet(line, T, i, H, dim_H, &l, U, dim_U, &m) == 0 )
       i++;
     else
       skipped++;
@@ -38,6 +60,8 @@ int main(int argc, char **argv) {
   /* Resoconto */
   printf ("\n-> Lette %d righe, salvati %d Tweet, %d saltati \n",i+skipped,i,skipped);
   printf ("\n\t Trovati %d #hashtag da %d utenti \n", l, m);
+
+  printf ("\t dimensioni array H: %d, U: %d\n",dim_H,dim_U);
 
   #ifdef DEBUG
   /* Stampo tweet */
@@ -55,8 +79,8 @@ int main(int argc, char **argv) {
     /* Stampo gli hashtags */
     //#ifdef DEBUG
     printf ("\n some #: ");
-    int R = rand(); R = R % 30;
-    for (int i = 0; i < R; ++i)
+    int R = rand(); R = R % 40;
+    for (int i = R; i < R+6; ++i)
       printf ("%s ", H[i].tag);
     printf ("\n");
     //#endif
@@ -87,7 +111,7 @@ int main(int argc, char **argv) {
 	printf ("Hashtag troppo corto\n");
       else {
 	printf (" Cerco [#%s] ...",s);
-	int h = cerca_hash(s,H,l);
+	int h = cerca_hash(s,H,dim_H,l);
 	if (h < 0)	
 	  printf ("non trovato\n");
 	else {

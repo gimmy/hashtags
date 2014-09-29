@@ -31,7 +31,7 @@ int add(int x, int* a, int* free_p, int len_a) {
   if ( p == -1 ) {		// se non trovo
       p = *free_p;		// prendo prima posizione libera
       if ( p+1 < len_a ) {
-	a[p] = x;		// inserisco e
+	a[p] = x;		// inserisco
 	*free_p = p+1;		// avanzo 
       }
       else {			// ritorno 1 se non posso aumentare
@@ -65,9 +65,9 @@ void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H) {
 
   /* /\* Print dest Users *\/ */
   /* if ( T[id].udest != 0 ) { */
-  /*   if ( T[id].udest > 10 || T[id].udest < 0 ) { */
+  /*   if ( T[id].udest > 20 || T[id].udest < 0 ) { */
   /* 	printf ("udest anomalo = %d\n", T[id].udest ); */
-  /* 	assert (T[id].udest <= 10); // evito overflow     */
+  /* 	assert (T[id].udest <= 20); // evito overflow     */
   /*     } */
   /*   else { */
   /*     int u = 0; */
@@ -115,11 +115,31 @@ void stampa_at(int id, User* U) {
   }
 }
 
+/** Dynamic array **/
+void verifica_raddoppio_H( Hashtag* H, int* dim_H, int p ) {
+  
+  /* prendo dimensione */
+  int dim = *dim_H;
+
+  if ( p+10 > dim ) { // se non ho almeno 10 posizioni libere..
+    Hashtag *tmp = realloc( H, sizeof(Hashtag) * ( dim * 2 ) ); 
+    if ( tmp ) {
+      H = tmp;
+      dim *= 2;
+      *dim_H = dim;
+      printf ("Raddioppio, nuova dim H : %d ",dim);
+    }
+    else
+      ERR("Hashtag realloc error");
+  }
+
+}
+
 /*** Hashtags Array ***/
 
-int cerca_hash(char* parola, Hashtag* H, int until) {
+int cerca_hash(char* parola, Hashtag* H, int dim_H, int until) {
   int found = -1; int i = 0;
-  assert (until < NHASH);
+  assert (until < dim_H);
   while(i < until && found < 0){
     if ( strcmp(parola, H[i].tag) == 0 )
 	found = i;
@@ -129,16 +149,16 @@ int cerca_hash(char* parola, Hashtag* H, int until) {
   return found;
 }
 
-int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
+int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int dim_H, int* position) {
 
   int p = *position;	// prendo la prima posizione libera
   int found = 0;
 
   if( p > 0 ) {
-    found = cerca_hash(hashtag, H, p);
+    found = cerca_hash(hashtag, H, dim_H, p);
   }
 
-  /* Se primo hashtag o nuovo lo inserisco  */
+  /* Se primo o nuovo hashtag lo inserisco  */
   if ( p == 0 || found < 0 ) {
 
       strcpy( H[p].tag, hashtag );
@@ -169,9 +189,9 @@ int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position) {
 
 /*** User Array ***/
 
-int cerca_user(char* utente, User* U, int until) {
+int cerca_user(char* utente, User* U, int dim_U, int until) {
   int found = -1; int i = 0;
-  assert (until < NUSER);
+  assert (until < dim_U);
   while(i < until && found < 0){
     if ( strcmp(utente, U[i].screen_name) == 0 )
 	found = i;
@@ -181,14 +201,14 @@ int cerca_user(char* utente, User* U, int until) {
   return found;
 }
 
-int inserisci_user(char* sname, int idtweet, User* U, int* position, int u) {
+int inserisci_user(char* sname, int idtweet, User* U, int dim_U, int* position, int u) {
 
   int p = *position;	// prendo la prima posizione libera
 
   int found = 0;
 
   if( p > 0 ) {
-    found = cerca_user(sname, U, p);    
+    found = cerca_user(sname, U, dim_U, p);    
   }    
 
   /* Se primo utente o nuovo lo inserisco  */

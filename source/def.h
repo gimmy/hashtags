@@ -4,7 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTWEET 45000		/* numero di Tweet da leggere */
+#define NTWEET 100000		/* numero di Tweet da leggere */
+/* using dim_H and dim_U for dynamic array */
 #define NHASH 5000		/* uso NTWEET come bound */
 #define NUSER 14000
 
@@ -33,9 +34,9 @@ typedef struct {
   char text[LEN];
   int author;
   int udest;
-  int dest[10];
+  int dest[20];
   int nhash;
-  int hash[10];
+  int hash[20];
 } Tweet;
 
 typedef struct {
@@ -59,6 +60,9 @@ int u8_unescape(char *buf, int sz, char *src);
 int cerca(int x, int* array, int N);
 int add(int x, int* a, int* free_p, int len_a);
 
+/* Dynamic array */
+void verifica_raddoppio_H( Hashtag* H, int* dim_H, int p );
+
 /* Stampe */
 void stampa_utente(int id, User* U);
 void stampa_at(int iduser, User* U);
@@ -66,18 +70,18 @@ void stampa_tweet(int id, Tweet* T, User* U, Hashtag* H);
 void stampa_himpl(int id, Tweet* T, User* U, Hashtag* H);
 
 /* Hashtag array */
-int cerca_hash(char* parola, Hashtag* H, int until);
-int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int* position);
+int cerca_hash(char* parola, Hashtag* H, int dim_H, int until);
+int inserisci_hash(char* hashtag, int idtweet, Hashtag* H, int dim_H, int* position);
 
 /* User array */
-int cerca_user(char* utente, User* U, int until);
-int inserisci_user(char* sname, int idtweet, User* U, int* position, int u);
+int cerca_user(char* utente, User* U, int dim_U, int until);
+int inserisci_user(char* sname, int idtweet, User* U, int dim_U, int* position, int u);
 
 /* Parser */
 void check_result(int r, int s);
-void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int* pl);
-void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int* pm);
-int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int* pl, User* U, int* pm);
+void ScanHash(char* aux, Tweet* t, int idtweet, int h, Hashtag* H, int dim_H, int* pl);
+void ScanUser(char* aux, Tweet* t, int idtweet, int u, User* U, int dim_U, int* pm);
+int ParseTweet(char* js, Tweet* T, int i, Hashtag* H, int dim_H, int* pl, User* U, int dim_U, int* pm);
 int tolower(int);
 
 /* Implicit hashtag */
